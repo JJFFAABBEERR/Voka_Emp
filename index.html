@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENA - Sistema de Gestión de Oferta Complementaria Empresarial</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.min.css">
+<style>
+  :root { --sena-green: #39A900; --sena-green-dark: #2d8a00; --sena-yellow: #FFCE00; --sena-red: #ED1C24; }
+  * { font-family: 'Inter', sans-serif; }
+  body { background: #f3f4f6; }
+  .sena-gradient { background: linear-gradient(135deg, #39A900 0%, #2d8a00 100%); }
+  .sena-btn { background: #39A900; transition: all 0.3s; }
+  .sena-btn:hover { background: #2d8a00; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(57,169,0,0.4); }
+  .sena-btn-red { background: #ED1C24; }
+  .sena-btn-red:hover { background: #c41820; }
+  .sena-btn-outline { border: 2px solid #39A900; color: #39A900; background: transparent; }
+  .sena-btn-outline:hover { background: #39A900; color: white; }
+  .card-hover { transition: all 0.3s; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+  .fade-in { animation: fadeIn 0.4s ease-in; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); animation: fadeIn 0.2s; }
+  .modal-content { animation: modalIn 0.3s ease-out; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+  .input-sena { border: 2px solid #e5e7eb; transition: all 0.2s; }
+  .input-sena:focus { border-color: #39A900; box-shadow: 0 0 0 3px rgba(57,169,0,0.1); outline: none; }
+  .badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-yellow { background: #fef9c3; color: #854d0e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-gray { background: #f3f4f6; color: #374151; }
+  .program-card { border-left: 4px solid #39A900; }
+  .program-card.selected { border-left-color: #FFCE00; background: #fef9c3; }
+  .sidebar-link { transition: all 0.2s; border-left: 3px solid transparent; }
+  .sidebar-link:hover, .sidebar-link.active { background: rgba(57,169,0,0.1); border-left-color: #39A900; color: #39A900; }
+  .toast { animation: toastIn 0.3s ease-out; }
+  @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hero-pattern { background-image: radial-gradient(circle at 20% 50%, rgba(255,206,0,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%); }
+  .firebase-badge { background: linear-gradient(135deg, #FFA000 0%, #FF6F00 100%); }
+  .btn-edit { background: #3b82f6; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+  .btn-edit:hover { background: #2563eb; transform: scale(1.05); }
+  .btn-delete { background: #ef4444; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+  .btn-delete:hover { background: #dc2626; transform: scale(1.05); }
+  @media (max-width: 768px) { .hide-mobile { display: none; } }
+</style>
+</head>
+<body>
+
+<div id="toastContainer" class="fixed top-4 right-4 z-[100] space-y-2"></div>
+<div id="modalContainer"></div>
+
+<div id="loadingOverlay" class="fixed inset-0 bg-white z-[200] flex items-center justify-center">
+  <div class="text-center">
+    <div class="loading w-16 h-16 border-4 border-gray-200 border-t-green-600 mx-auto mb-4"></div>
+    <p class="text-gray-600 font-semibold">Conectando con Firebase...</p>
+    <p class="text-gray-400 text-sm mt-2">Cargando datos del sistema</p>
+  </div>
+</div>
+
+<div id="app"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+// ============ FIREBASE ============
+const firebaseConfig = {
+  apiKey: "AIzaSyB7TJKVUXnp7SoJXZXqG1YHOjA9G7gZ1Sg",
+  authDomain: "empresarios-c6f2f.firebaseapp.com",
+  projectId: "empresarios-c6f2f",
+  storageBucket: "empresarios-c6f2f.firebasestorage.app",
+  messagingSenderId: "1095063882852",
+  appId: "1:1095063882852:web:67ce3a31368bf0e38a2371"
+};
+
+let db;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  console.log('✅ Firebase inicializado');
+} catch (error) {
+  console.error('❌ Error Firebase:', error);
+}
+
+// ============ DATOS ============
+const LOGO_URL = 'https://image.qwenlm.ai/public_source/9376e0d9-769f-4cc9-9631-fd32242d9981/1066db039-8d5b-4880-8028-82896fa7f4bf.png';
+const HERO_URL = 'https://image.qwenlm.ai/public_source/9376e0d9-769f-4cc9-9631-fd32242d9981/1768f9356-2b84-43a9-be9a-cba92dd3a98a.png';
+
+const DEFAULT_CENTERS = [
+  { id: 'c01', name: 'Centro de Gestión de Mercados', regional: 'Bogotá D.C.', code: 'CGM' },
+  { id: 'c02', name: 'Centro de Servicios y Gestión Empresarial', regional: 'Bogotá D.C.', code: 'CSGE' },
+  { id: 'c03', name: 'Centro de Biotecnología Industrial', regional: 'Atlántico', code: 'CBI' },
+  { id: 'c04', name: 'Centro de Desarrollo Agroempresarial', regional: 'Tolima', code: 'CDA' },
+  { id: 'c05', name: 'Centro de Electricidad, Electrónica y Telecomunicaciones', regional: 'Bogotá D.C.', code: 'CEET' },
+  { id: 'c06', name: 'Centro de Manufactura en Textiles y Confecciones', regional: 'Bogotá D.C.', code: 'CMTC' },
+  { id: 'c07', name: 'Centro de Automoción', regional: 'Antioquia', code: 'CA' },
+  { id: 'c08', name: 'Centro de Turismo y Hotelería', regional: 'Bogotá D.C.', code: 'CTH' },
+  { id: 'c09', name: 'Centro de Diseño e Innovación Tecnológica e Industrial', regional: 'Bogotá D.C.', code: 'CEDII' },
+  { id: 'c10', name: 'Centro de Gestión Industrial', regional: 'Bogotá D.C.', code: 'CGI' },
+  { id: 'c11', name: 'Centro de Comercio y Servicios', regional: 'Bogotá D.C.', code: 'CCS' },
+  { id: 'c12', name: 'Centro de Recursos Naturales Renovables', regional: 'Caldas', code: 'CRNR' },
+  { id: 'c13', name: 'Centro Agroindustrial y de Fortalecimiento Empresarial', regional: 'Norte de Santander', code: 'CAFE' },
+  { id: 'c14', name: 'Centro de la Construcción', regional: 'Bogotá D.C.', code: 'CC' },
+  { id: 'c15', name: 'Centro de Gestión y Desarrollo Sostenible Sur Amazónico', regional: 'Caquetá', code: 'CGDSSA' },
+  { id: 'c16', name: 'Centro Agroempresarial y Minero', regional: 'Boyacá', code: 'CAM' },
+  { id: 'c17', name: 'Centro Industrial y de Energías Alternativas', regional: 'Santander', code: 'CIDEA' },
+  { id: 'c18', name: 'Centro Tecnológico del Agro', regional: 'Valle del Cauca', code: 'CTA' },
+  { id: 'c19', name: 'Centro de Gestión y Desarrollo Sostenible', regional: 'Meta', code: 'CGDS' },
+  { id: 'c20', name: 'Centro de Industria y Construcción', regional: 'Antioquia', code: 'CIC' }
+];
+
+const DEFAULT_CATEGORIES = [
+  { id: 'cat_tech', name: 'Tecnología e Innovación', icon: '💻', description: 'Programas de inteligencia artificial, ofimática y desarrollo de software' },
+  { id: 'cat_econ', name: 'Economía Popular', icon: '🏘️', description: 'Emprendimiento, organización comunitaria y gestión empresarial rural' },
+  { id: 'cat_amb', name: 'Ambiental', icon: '🌿', description: 'Gestión ambiental, residuos, energías renovables y agroecología' },
+  { id: 'cat_comp', name: 'Competitividad', icon: '📈', description: 'Marketing, talento humano, finanzas y estrategia empresarial' },
+  { id: 'cat_salud', name: 'Salud y Bienestar', icon: '🧠', description: 'Salud mental, primeros auxilios psicológicos y bienestar integral' },
+  { id: 'cat_textil', name: 'Confección Textil', icon: '🧵', description: 'Patronaje, corte, confección y mantenimiento de maquinaria textil' },
+  { id: 'cat_auto', name: 'Automotriz', icon: '🚗', description: 'Mantenimiento de talleres, motocicletas y sistemas eléctricos' },
+  { id: 'cat_hab', name: 'Habilidades Blandas', icon: '🤝', description: 'Liderazgo, comunicación, trabajo en equipo y ética laboral' },
+  { id: 'cat_foto', name: 'Fotografía y Diseño Gráfico', icon: '📷', description: 'Fotografía digital, productos, redes sociales e Indesign' },
+  { id: 'cat_elec', name: 'Electricidad – Electrónica - Energía', icon: '⚡', description: 'Instalaciones eléctricas, electrónica, robótica y eficiencia energética' },
+  { id: 'cat_tur', name: 'Turismo – Comunidad – Agroecología', icon: '🌄', description: 'Turismo rural, comunitario y desarrollo local sostenible' },
+  { id: 'cat_mad', name: 'Madera y Artesanías', icon: '🪵', description: 'Acabados, elaboración artesanal y técnicas de pintura en madera' }
+];
+
+const DEFAULT_PROGRAMS = [
+  { id: 'p01', categoryId: 'cat_tech', centerId: 'c09', name: 'Inteligencia artificial generativa como catalizador de la productividad', description: 'Potencializa la eficiencia y automatización en procesos productivos.', duration: '48h' },
+  { id: 'p02', categoryId: 'cat_tech', centerId: 'c09', name: 'Análisis de información financiera con inteligencia artificial', description: 'Optimiza la gestión financiera mediante herramientas modernas.', duration: '48h' },
+  { id: 'p03', categoryId: 'cat_tech', centerId: 'c09', name: 'Implementación de soluciones de inteligencia artificial', description: 'Promueve el desarrollo y aplicación de sistemas inteligentes.', duration: '48h' },
+  { id: 'p04', categoryId: 'cat_tech', centerId: 'c09', name: 'Construcción de experiencias de aprendizaje basadas en IA', description: 'Favorece la formación innovadora y personalizada.', duration: '48h' },
+  { id: 'p05', categoryId: 'cat_tech', centerId: 'c09', name: 'Implementación de metodologías ágiles en desarrollo de software', description: 'Permite acelerar la transformación digital.', duration: '40h' },
+  { id: 'p06', categoryId: 'cat_tech', centerId: 'c01', name: 'Word Básico', description: 'Permite elaborar documentos, redacción, formato.', duration: '40h' },
+  { id: 'p07', categoryId: 'cat_tech', centerId: 'c01', name: 'Informática: Microsoft Word, Excel e Internet', description: 'Permite manejar herramientas de oficina y navegación.', duration: '40h' },
+  { id: 'p08', categoryId: 'cat_tech', centerId: 'c01', name: 'Excel Básico', description: 'Permite organizar datos, cálculos, tablas.', duration: '40h' },
+  { id: 'p09', categoryId: 'cat_tech', centerId: 'c01', name: 'Excel Intermedio', description: 'Permite profundizar análisis, funciones, reportes.', duration: '40h' },
+  { id: 'p10', categoryId: 'cat_tech', centerId: 'c01', name: 'Alfabetización Informática', description: 'Permite iniciar uso del computador y habilidades digitales básicas.', duration: '40h' },
+  { id: 'p11', categoryId: 'cat_econ', centerId: 'c15', name: 'Organización comunitaria sostenible', description: 'Impulsa la conformación y sostenibilidad de organizaciones rurales.', duration: '80h' },
+  { id: 'p12', categoryId: 'cat_econ', centerId: 'c15', name: 'Reconocimiento de características socioculturales en procesos organizativos', description: 'Permite planificar estrategias acordes a las realidades del territorio.', duration: '50h' },
+  { id: 'p13', categoryId: 'cat_econ', centerId: 'c15', name: 'Implementación de planes comunitarios en organizaciones rurales', description: 'Fortalece la ejecución de proyectos de impacto social.', duration: '48h' },
+  { id: 'p14', categoryId: 'cat_econ', centerId: 'c02', name: 'Comportamiento emprendedor', description: 'Desarrolla actitudes proactivas y resilientes.', duration: '50h' },
+  { id: 'p15', categoryId: 'cat_econ', centerId: 'c02', name: 'Emprendimiento innovador', description: 'Promueve la generación de proyectos disruptivos.', duration: '40h' },
+  { id: 'p16', categoryId: 'cat_econ', centerId: 'c02', name: 'Emprendimiento digital', description: 'Facilita el acceso al mercado digital.', duration: '48h' },
+  { id: 'p17', categoryId: 'cat_econ', centerId: 'c02', name: 'Diseño de estrategias de promoción digital', description: 'Incrementa el posicionamiento y alcance comercial.', duration: '48h' },
+  { id: 'p18', categoryId: 'cat_econ', centerId: 'c02', name: 'Excel Intermedio', description: 'Mejora la gestión de información y análisis operativo.', duration: '20h' },
+  { id: 'p19', categoryId: 'cat_econ', centerId: 'c02', name: 'Comunicación asertiva y efectiva en equipos de trabajo', description: 'Potencia el trabajo colaborativo.', duration: '48h' },
+  { id: 'p20', categoryId: 'cat_econ', centerId: 'c02', name: 'Comunicación y trabajo colaborativo con coaching', description: 'Aumenta el rendimiento y cohesión grupal.', duration: '48h' },
+  { id: 'p21', categoryId: 'cat_econ', centerId: 'c02', name: 'Estrategias administrativas en equipos de trabajo', description: 'Optimiza los recursos humanos y materiales.', duration: '48h' },
+  { id: 'p22', categoryId: 'cat_econ', centerId: 'c04', name: 'Planeación de la producción', description: 'Garantiza la efectividad en la gestión de recursos.', duration: '40h' },
+  { id: 'p23', categoryId: 'cat_econ', centerId: 'c02', name: 'Fortalecimiento en gestión organizacional', description: 'Permite alcanzar la sostenibilidad y el crecimiento.', duration: '96h' },
+  { id: 'p24', categoryId: 'cat_amb', centerId: 'c17', name: 'Relaciones y prácticas territoriales en energías renovables', description: 'Fomenta la transición a fuentes de energía limpias.', duration: '96h' },
+  { id: 'p25', categoryId: 'cat_amb', centerId: 'c12', name: 'Implementación de la responsabilidad ambiental', description: 'Sensibiliza sobre el compromiso empresarial con el medio ambiente.', duration: '40h' },
+  { id: 'p26', categoryId: 'cat_amb', centerId: 'c12', name: 'Gestión y educación ambiental', description: 'Contribuye a la adopción de mejores prácticas empresariales.', duration: '96h' },
+  { id: 'p27', categoryId: 'cat_amb', centerId: 'c12', name: 'Promoción de estrategias de apropiación ambiental', description: 'Fortalece la cultura de protección ambiental.', duration: '48h' },
+  { id: 'p28', categoryId: 'cat_amb', centerId: 'c12', name: 'Caracterización del desempeño ambiental', description: 'Facilita la evaluación de indicadores ambientales.', duration: '48h' },
+  { id: 'p29', categoryId: 'cat_amb', centerId: 'c12', name: 'Formulación de indicadores ambientales', description: 'Optimiza el seguimiento de impactos ambientales.', duration: '48h' },
+  { id: 'p30', categoryId: 'cat_amb', centerId: 'c12', name: 'Inducción a sistemas de gestión ambiental', description: 'Apoya la certificación y cumplimiento de estándares.', duration: '40h' },
+  { id: 'p31', categoryId: 'cat_amb', centerId: 'c12', name: 'Evaluación de impactos ambientales', description: 'Minimiza riesgos y mejora la gestión sostenible.', duration: '40h' },
+  { id: 'p32', categoryId: 'cat_amb', centerId: 'c12', name: 'Manipulación de residuos peligrosos', description: 'Garantiza la gestión segura de materiales de riesgo.', duration: '40h' },
+  { id: 'p33', categoryId: 'cat_amb', centerId: 'c12', name: 'Caracterización de residuos peligrosos', description: 'Permite correcta identificación y manejo de residuos.', duration: '40h' },
+  { id: 'p34', categoryId: 'cat_amb', centerId: 'c16', name: 'Fortalecimiento de saberes campesinos', description: 'Permite recuperar tradición y sostenibilidad.', duration: '40h' },
+  { id: 'p35', categoryId: 'cat_amb', centerId: 'c04', name: 'Implementación de procesos para transición agroecológica', description: 'Permite avanzar en cambio, suelos y biodiversidad.', duration: '40h' },
+  { id: 'p36', categoryId: 'cat_amb', centerId: 'c19', name: 'Mitigación y adaptación al cambio climático', description: 'Permite impulsar resiliencia y acciones climáticas.', duration: '40h' },
+  { id: 'p37', categoryId: 'cat_amb', centerId: 'c15', name: 'Aplicación de procesos de autogestión en acueductos', description: 'Permite fortalecer gestión del agua y comunidad.', duration: '40h' },
+  { id: 'p38', categoryId: 'cat_amb', centerId: 'c15', name: 'Desarrollo de acciones de promoción ambiental', description: 'Permite promover sensibilización y cuidado.', duration: '40h' },
+  { id: 'p39', categoryId: 'cat_comp', centerId: 'c10', name: 'Administración de información del ciclo de vida en industria 4.0', description: 'Facilita la transformación digital y trazabilidad.', duration: '48h' },
+  { id: 'p40', categoryId: 'cat_comp', centerId: 'c02', name: 'Diagnóstico para fortalecimiento y competitividad', description: 'Permite identificar áreas de mejora.', duration: '48h' },
+  { id: 'p41', categoryId: 'cat_comp', centerId: 'c02', name: 'Aplicación de metodologías para análisis financiero', description: 'Desarrolla capacidades para toma de decisiones.', duration: '40h' },
+  { id: 'p42', categoryId: 'cat_comp', centerId: 'c02', name: 'Mentalidad empresarial e ideas de negocio', description: 'Estimula la innovación y adaptación al cambio.', duration: '60h' },
+  { id: 'p43', categoryId: 'cat_comp', centerId: 'c01', name: 'Implementación de marketing sensorial', description: 'Diferencia productos a partir de experiencias sensoriales.', duration: '48h' },
+  { id: 'p44', categoryId: 'cat_comp', centerId: 'c01', name: 'Planeación de estrategia de marketing social', description: 'Enfoca la empresa hacia iniciativas de impacto social.', duration: '48h' },
+  { id: 'p45', categoryId: 'cat_comp', centerId: 'c01', name: 'Marketing Digital', description: 'Mejora la presencia comercial a través de canales digitales.', duration: '48h' },
+  { id: 'p46', categoryId: 'cat_comp', centerId: 'c02', name: 'Gestión del desarrollo del talento humano', description: 'Potencia el capital humano y productividad.', duration: '48h' },
+  { id: 'p47', categoryId: 'cat_comp', centerId: 'c02', name: 'Reclutamiento de talento humano mediante redes sociales', description: 'Agiliza el proceso de selección.', duration: '48h' },
+  { id: 'p48', categoryId: 'cat_comp', centerId: 'c01', name: 'Estrategia de marketing de contenidos digitales', description: 'Permite diseñar contenido y posicionamiento.', duration: '48h' },
+  { id: 'p49', categoryId: 'cat_comp', centerId: 'c01', name: 'Estrategias de comunicación integrada de marketing', description: 'Permite articular coherencia, canales y marca.', duration: '48h' },
+  { id: 'p50', categoryId: 'cat_comp', centerId: 'c01', name: 'Diseño de estrategias de promoción digital', description: 'Permite impulsar alcance, crecimiento y ventas.', duration: '48h' },
+  { id: 'p51', categoryId: 'cat_comp', centerId: 'c02', name: 'Emprendimiento Digital', description: 'Permite consolidar plataformas e innovación.', duration: '48h' },
+  { id: 'p52', categoryId: 'cat_salud', centerId: 'c03', name: 'Acciones de prevención en salud mental', description: 'Promueve el cuidado y prevención en salud mental.', duration: '40h' },
+  { id: 'p53', categoryId: 'cat_salud', centerId: 'c03', name: 'Cuidado de la salud mental en entornos de vida', description: 'Fomenta ambientes saludables y bienestar integral.', duration: '48h' },
+  { id: 'p54', categoryId: 'cat_salud', centerId: 'c03', name: 'Primeros Auxilios Psicológicos', description: 'Permite brindar apoyo y manejo de crisis emocionales.', duration: '48h' },
+  { id: 'p55', categoryId: 'cat_textil', centerId: 'c06', name: 'Corte y confección de pantalón', description: 'Impulsa habilidades técnicas para producción textil.', duration: '60h' },
+  { id: 'p56', categoryId: 'cat_textil', centerId: 'c06', name: 'Confección de vestido', description: 'Fortalece la capacidad de diversificación en productos.', duration: '60h' },
+  { id: 'p57', categoryId: 'cat_textil', centerId: 'c06', name: 'Confección de falda', description: 'Incrementa la productividad en industria textil.', duration: '60h' },
+  { id: 'p58', categoryId: 'cat_textil', centerId: 'c06', name: 'Confección de short', description: 'Permite responder a demandas de moda.', duration: '60h' },
+  { id: 'p59', categoryId: 'cat_textil', centerId: 'c06', name: 'Conocimientos básicos de patronaje, corte y confección', description: 'Brinda fundamentos para especialización en confección.', duration: '60h' },
+  { id: 'p60', categoryId: 'cat_textil', centerId: 'c06', name: 'Trazo, corte y confección de pantalón femenino', description: 'Facilita diversificación según tendencias.', duration: '80h' },
+  { id: 'p61', categoryId: 'cat_textil', centerId: 'c06', name: 'Confección de pantalón (industrial)', description: 'Refuerza competencias en producción industrial.', duration: '42h' },
+  { id: 'p62', categoryId: 'cat_textil', centerId: 'c06', name: 'Procesos de costura para confección industrial', description: 'Optimiza calidad y eficiencia en procesos textiles.', duration: '40h' },
+  { id: 'p63', categoryId: 'cat_textil', centerId: 'c06', name: 'Programación de máquinas electrónicas en confección', description: 'Permite optimizar automatización y producción.', duration: '40h' },
+  { id: 'p64', categoryId: 'cat_textil', centerId: 'c06', name: 'Mantenimiento de máquinas de costura', description: 'Permite garantizar funcionamiento y reparación.', duration: '40h' },
+  { id: 'p65', categoryId: 'cat_textil', centerId: 'c06', name: 'Ajuste de componentes eléctricos de confección', description: 'Permite mejorar calibración y desempeño.', duration: '40h' },
+  { id: 'p66', categoryId: 'cat_auto', centerId: 'c07', name: 'Administración del taller automotriz', description: 'Profesionaliza la gestión del sector automotor.', duration: '96h' },
+  { id: 'p67', categoryId: 'cat_auto', centerId: 'c07', name: 'Mantenimiento preventivo de motocicletas', description: 'Previene averías y alarga la vida de las motos.', duration: '48h' },
+  { id: 'p68', categoryId: 'cat_auto', centerId: 'c07', name: 'Mantenimiento del sistema eléctrico de motocicleta', description: 'Arregla luces y batería para motos confiables.', duration: '48h' },
+  { id: 'p69', categoryId: 'cat_auto', centerId: 'c07', name: 'Mantenimiento de frenos hidráulicos', description: 'Permite asegurar frenado y seguridad.', duration: '48h' },
+  { id: 'p70', categoryId: 'cat_hab', centerId: 'c02', name: 'Tratamiento de información para toma de decisiones', description: 'Impulsa capacidad analítica y buen juicio.', duration: '48h' },
+  { id: 'p71', categoryId: 'cat_hab', centerId: 'c02', name: 'Integración del pensamiento científico y creativo', description: 'Favorece innovación y soluciones efectivas.', duration: '48h' },
+  { id: 'p72', categoryId: 'cat_hab', centerId: 'c02', name: 'Implementación de metodologías ágiles en formación', description: 'Mejora adaptación en procesos formativos.', duration: '48h' },
+  { id: 'p73', categoryId: 'cat_hab', centerId: 'c02', name: 'Autogestión del ser humano hacia productividad', description: 'Promueve desarrollo personal y profesional.', duration: '40h' },
+  { id: 'p74', categoryId: 'cat_hab', centerId: 'c02', name: 'Liderazgo efectivo', description: 'Fortalece direccionamiento y motivación de equipos.', duration: '48h' },
+  { id: 'p75', categoryId: 'cat_hab', centerId: 'c02', name: 'Aplicación de Ética y habilidades sociales', description: 'Eleva clima organizacional y cumplimiento ético.', duration: '48h' },
+  { id: 'p76', categoryId: 'cat_hab', centerId: 'c02', name: 'Liderazgo y trabajo en equipo', description: 'Impulsa sinergia y resultados colectivos.', duration: '40h' },
+  { id: 'p77', categoryId: 'cat_hab', centerId: 'c02', name: 'Orientación del proyecto de vida', description: 'Motiva construcción de planes personales.', duration: '48h' },
+  { id: 'p78', categoryId: 'cat_hab', centerId: 'c02', name: 'Empoderamiento del ser como eje del cambio', description: 'Potencia capacidades para liderar mejoras.', duration: '96h' },
+  { id: 'p79', categoryId: 'cat_hab', centerId: 'c02', name: 'Proyecto de intervención en clima laboral', description: 'Permite identificar y mejorar ambiente interno.', duration: '48h' },
+  { id: 'p80', categoryId: 'cat_hab', centerId: 'c02', name: 'Comunicación y trabajo colaborativo con coaching', description: 'Une equipos con coaching práctico.', duration: '48h' },
+  { id: 'p81', categoryId: 'cat_hab', centerId: 'c02', name: 'Liderazgo en innovación para la paz', description: 'Permite promover cambio y diálogo.', duration: '48h' },
+  { id: 'p82', categoryId: 'cat_hab', centerId: 'c02', name: 'Comunicación asertiva y efectiva', description: 'Permite mejorar diálogo y convivencia.', duration: '48h' },
+  { id: 'p83', categoryId: 'cat_hab', centerId: 'c02', name: 'Plan de comunicación estratégica', description: 'Permite alinear comunicación y objetivos.', duration: '48h' },
+  { id: 'p84', categoryId: 'cat_foto', centerId: 'c11', name: 'Fotografía básica de productos para redes sociales', description: 'Permite mejorar imagen y catálogo.', duration: '48h' },
+  { id: 'p85', categoryId: 'cat_foto', centerId: 'c11', name: 'Fotografía con smartphone para sector belleza', description: 'Permite crear portafolio y promoción.', duration: '48h' },
+  { id: 'p86', categoryId: 'cat_foto', centerId: 'c11', name: 'Producción de fotografía experimental', description: 'Permite explorar arte e innovación.', duration: '48h' },
+  { id: 'p87', categoryId: 'cat_foto', centerId: 'c11', name: 'Fotografía de producto', description: 'Permite resaltar detalles y comercialización.', duration: '48h' },
+  { id: 'p88', categoryId: 'cat_foto', centerId: 'c11', name: 'Composición y principios de iluminación', description: 'Permite perfeccionar encuadre y luz.', duration: '48h' },
+  { id: 'p89', categoryId: 'cat_foto', centerId: 'c11', name: 'Técnicas para fotografía digital', description: 'Permite optimizar captura y edición.', duration: '48h' },
+  { id: 'p90', categoryId: 'cat_foto', centerId: 'c11', name: 'Aplicaciones básicas para fotografía digital', description: 'Permite utilizar apps y retoque.', duration: '48h' },
+  { id: 'p91', categoryId: 'cat_foto', centerId: 'c11', name: 'Adobe InDesign CS5 Básico', description: 'Permite desarrollar maquetación y diseño.', duration: '48h' },
+  { id: 'p92', categoryId: 'cat_foto', centerId: 'c11', name: 'InDesign CS5', description: 'Permite elaborar layout y revistas.', duration: '48h' },
+  { id: 'p93', categoryId: 'cat_elec', centerId: 'c05', name: 'Electrónica, electrotecnia y medidas', description: 'Permite fortalecer medición y diagnóstico.', duration: '48h' },
+  { id: 'p94', categoryId: 'cat_elec', centerId: 'c05', name: 'Aplicación del etiquetado de eficiencia energética', description: 'Permite aplicar ahorro y normativa.', duration: '48h' },
+  { id: 'p95', categoryId: 'cat_elec', centerId: 'c05', name: 'Instalaciones eléctricas domiciliarias', description: 'Permite desarrollar vivienda y cableado.', duration: '48h' },
+  { id: 'p96', categoryId: 'cat_elec', centerId: 'c05', name: 'Servicio de instalaciones eléctricas', description: 'Permite mejorar mantenimiento y soporte.', duration: '48h' },
+  { id: 'p97', categoryId: 'cat_elec', centerId: 'c05', name: 'Seguridad en instalaciones eléctricas', description: 'Permite reforzar prevención y protección.', duration: '48h' },
+  { id: 'p98', categoryId: 'cat_elec', centerId: 'c05', name: 'Seguridad en riesgo eléctrico', description: 'Permite gestionar control e integridad.', duration: '48h' },
+  { id: 'p99', categoryId: 'cat_elec', centerId: 'c05', name: 'Generación, transformación y uso de energía eléctrica', description: 'Permite optimizar uso y conversión.', duration: '48h' },
+  { id: 'p100', categoryId: 'cat_elec', centerId: 'c05', name: 'Medición de parámetros de circuitos eléctricos', description: 'Permite realizar pruebas y verificación.', duration: '48h' },
+  { id: 'p101', categoryId: 'cat_elec', centerId: 'c05', name: 'Fundamentos de electricidad', description: 'Permite adquirir bases y conceptos.', duration: '48h' },
+  { id: 'p102', categoryId: 'cat_elec', centerId: 'c05', name: 'Aplicación de electrónica y robótica', description: 'Permite potenciar innovación y STEM.', duration: '48h' },
+  { id: 'p103', categoryId: 'cat_tur', centerId: 'c08', name: 'Contextualización del turismo para desarrollo local', description: 'Permite articular territorio y cultura.', duration: '48h' },
+  { id: 'p104', categoryId: 'cat_tur', centerId: 'c08', name: 'Turismo en espacios rurales', description: 'Permite dinamizar campo y sostenibilidad.', duration: '48h' },
+  { id: 'p105', categoryId: 'cat_tur', centerId: 'c08', name: 'Contextualización del turismo comunitario', description: 'Permite fortalecer participación e identidad.', duration: '48h' },
+  { id: 'p106', categoryId: 'cat_tur', centerId: 'c08', name: 'Marketing digital para productos turísticos', description: 'Permite mejorar visibilidad y reservas.', duration: '48h' },
+  { id: 'p107', categoryId: 'cat_mad', centerId: 'c14', name: 'Aplicación de acabados en superficies de madera', description: 'Permite mejorar protección y estética.', duration: '48h' },
+  { id: 'p108', categoryId: 'cat_mad', centerId: 'c14', name: 'Elaboración de productos artesanales en madera', description: 'Permite crear productos y diseño.', duration: '48h' },
+  { id: 'p109', categoryId: 'cat_mad', centerId: 'c14', name: 'Elaboración de bastidores en madera', description: 'Permite construir estructura y ensamblaje.', duration: '48h' },
+  { id: 'p110', categoryId: 'cat_mad', centerId: 'c14', name: 'Secado de la madera', description: 'Permite garantizar estabilidad y calidad.', duration: '48h' },
+  { id: 'p111', categoryId: 'cat_mad', centerId: 'c14', name: 'Técnicas básicas de pintura sobre madera', description: 'Permite aplicar decoración y color.', duration: '48h' }
+];
+
+const DEFAULT_USERS = [
+  { id: 'u1', email: 'superadmin@sena.edu.co', password: '123456', name: 'Carlos SuperAdmin', role: 'superadmin', company: 'SENA Nacional', phone: '3001234567', createdAt: '2024-01-01' },
+  { id: 'u2', email: 'admin@sena.edu.co', password: '123456', name: 'María Administradora', role: 'admin', company: 'SENA Regional', phone: '3007654321', createdAt: '2024-01-15' },
+  { id: 'u3', email: 'empresario@sena.edu.co', password: '123456', name: 'Juan Empresario', role: 'empresario', company: 'Tech Solutions SAS', phone: '3109876543', createdAt: '2024-02-01' }
+];
+
+const DEFAULT_REQUESTS = [
+  { id: 'r1', userId: 'u3', programs: ['p01','p03'], apprenticeRange: '11-20', schedule: 'tarde', observations: 'Necesitamos formación en IA.', status: 'pendiente', createdAt: '2026-06-20' },
+  { id: 'r2', userId: 'u3', programs: ['p42'], apprenticeRange: '0-10', schedule: 'mañana', observations: 'Capacitación en mentalidad empresarial.', status: 'aprobada', createdAt: '2026-06-15' }
+];
+
+const DEFAULT_AUDIT = [
+  { id: 'a1', userId: 'u1', action: 'Inicio de sesión', timestamp: '2026-06-26 08:00:00' },
+  { id: 'a2', userId: 'u3', action: 'Registro de solicitud r1', timestamp: '2026-06-20 14:30:00' }
+];
+
+// ============ STATE ============
+let state = {
+  currentUser: null,
+  currentView: 'login',
+  users: [],
+  programs: [],
+  categories: [],
+  centers: [],
+  requests: [],
+  audit: [],
+  selectedPrograms: [],
+  searchQuery: '',
+  filterCategory: '',
+  filterCenter: '',
+  filterStatus: '',
+  firebaseReady: false,
+  firebaseError: null
+};
+
+// ============ UTILIDADES ============
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function generateId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2,9); }
+
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const colors = { success: 'bg-green-500', error: 'bg-red-500', warning: 'bg-yellow-500', info: 'bg-blue-500' };
+  const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px]`;
+  toast.innerHTML = `<span class="text-xl font-bold">${icons[type]}</span><span class="font-medium">${escapeHtml(message)}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+// ============ FIREBASE ============
+async function initFirebase() {
+  try {
+    if (!db) throw new Error('Firebase no inicializado');
+    
+    const [usersSnap, programsSnap, categoriesSnap, centersSnap, requestsSnap, auditSnap] = await Promise.all([
+      db.collection('users').get(),
+      db.collection('programs').get(),
+      db.collection('categories').get(),
+      db.collection('centers').get(),
+      db.collection('requests').get(),
+      db.collection('audit').get()
+    ]);
+
+    if (usersSnap.empty || programsSnap.empty || categoriesSnap.empty || centersSnap.empty) {
+      await seedInitialData();
+      const [u2, p2, c2, ce2, r2, a2] = await Promise.all([
+        db.collection('users').get(), db.collection('programs').get(),
+        db.collection('categories').get(), db.collection('centers').get(),
+        db.collection('requests').get(), db.collection('audit').get()
+      ]);
+      state.users = u2.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.programs = p2.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.categories = c2.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.centers = ce2.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.requests = r2.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.audit = a2.docs.map(d => ({ id: d.id, ...d.data() }));
+    } else {
+      state.users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.programs = programsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.categories = categoriesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.centers = centersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.requests = requestsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.audit = auditSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+
+    state.firebaseReady = true;
+    document.getElementById('loadingOverlay').style.display = 'none';
+    render();
+  } catch (error) {
+    console.error('Error Firebase:', error);
+    state.firebaseError = error.message;
+    showToast('Error Firebase: ' + error.message + '. Usando datos locales.', 'error');
+    state.users = [...DEFAULT_USERS];
+    state.programs = [...DEFAULT_PROGRAMS];
+    state.categories = [...DEFAULT_CATEGORIES];
+    state.centers = [...DEFAULT_CENTERS];
+    state.requests = [...DEFAULT_REQUESTS];
+    state.audit = [...DEFAULT_AUDIT];
+    state.firebaseReady = true;
+    document.getElementById('loadingOverlay').style.display = 'none';
+    render();
+  }
+}
+
+async function seedInitialData() {
+  const batch = db.batch();
+  DEFAULT_USERS.forEach(u => batch.set(db.collection('users').doc(u.id), u));
+  DEFAULT_PROGRAMS.forEach(p => batch.set(db.collection('programs').doc(p.id), p));
+  DEFAULT_CATEGORIES.forEach(c => batch.set(db.collection('categories').doc(c.id), c));
+  DEFAULT_CENTERS.forEach(c => batch.set(db.collection('centers').doc(c.id), c));
+  DEFAULT_REQUESTS.forEach(r => batch.set(db.collection('requests').doc(r.id), r));
+  DEFAULT_AUDIT.forEach(a => batch.set(db.collection('audit').doc(a.id), a));
+  await batch.commit();
+}
+
+async function saveToFirebase(collection, data, id = null) {
+  try {
+    if (!db) return id;
+    if (id) await db.collection(collection).doc(id).set(data);
+    else { const ref = await db.collection(collection).add(data); return ref.id; }
+    return id;
+  } catch (e) { console.error(e); return id; }
+}
+
+async function updateFirebase(collection, id, data) {
+  try { if (db) await db.collection(collection).doc(id).update(data); } catch (e) { console.error(e); }
+}
+
+async function deleteFromFirebase(collection, id) {
+  try { if (db) await db.collection(collection).doc(id).delete(); } catch (e) { console.error(e); }
+}
+
+async function addAudit(action) {
+  if (!state.currentUser) return;
+  const auditData = { id: generateId(), userId: state.currentUser.id, action, timestamp: new Date().toLocaleString('es-CO') };
+  state.audit.push(auditData);
+  await saveToFirebase('audit', auditData, auditData.id);
+}
+
+// ============ AUTH ============
+async function login(email, password) {
+  const user = state.users.find(u => u.email === email && u.password === password);
+  if (user) {
+    state.currentUser = user;
+    await addAudit('Inicio de sesión');
+    showToast(`Bienvenido ${user.name}`, 'success');
+    navigate(user.role === 'empresario' ? 'catalogo' : user.role === 'admin' ? 'adminPanel' : 'superPanel');
+    return true;
+  }
+  showToast('Credenciales incorrectas', 'error');
+  return false;
+}
+
+async function register(data) {
+  if (state.users.find(u => u.email === data.email)) {
+    showToast('El correo ya está registrado', 'error');
+    return false;
+  }
+  const user = { id: generateId(), ...data, role: 'empresario', createdAt: new Date().toISOString().split('T')[0] };
+  state.users.push(user);
+  await saveToFirebase('users', user, user.id);
+  await addAudit(`Registro de nuevo empresario: ${data.email}`);
+  showToast('Registro exitoso', 'success');
+  state.currentUser = user;
+  navigate('catalogo');
+  return true;
+}
+
+async function logout() {
+  if (state.currentUser) await addAudit('Cierre de sesión');
+  state.currentUser = null;
+  state.selectedPrograms = [];
+  navigate('login');
+}
+
+function navigate(view) {
+  state.currentView = view;
+  render();
+  window.scrollTo(0, 0);
+}
+
+// ============ RENDER ============
+function render() {
+  const app = document.getElementById('app');
+  if (!state.currentUser) {
+    if (state.currentView === 'register') app.innerHTML = renderRegister();
+    else if (state.currentView === 'recover') app.innerHTML = renderRecover();
+    else app.innerHTML = renderLogin();
+  } else {
+    const role = state.currentUser.role;
+    if (role === 'empresario') {
+      const views = { catalogo: renderCatalogo, solicitud: renderSolicitud, historial: renderHistorial, perfil: renderPerfil };
+      app.innerHTML = renderEmpresarioLayout((views[state.currentView] || renderCatalogo)());
+    } else if (role === 'admin') {
+      const views = { adminPanel: renderAdminDashboard, adminRequests: renderAdminRequests, adminReports: renderAdminReports, adminAudit: renderAdminAudit };
+      app.innerHTML = renderAdminLayout((views[state.currentView] || renderAdminDashboard)());
+    } else if (role === 'superadmin') {
+      const views = { superPanel: renderSuperDashboard, superUsers: renderSuperUsers, superPrograms: renderSuperPrograms, superCategories: renderSuperCategories, superCenters: renderSuperCenters, superAudit: renderAdminAudit };
+      app.innerHTML = renderSuperLayout((views[state.currentView] || renderSuperDashboard)());
+    }
+  }
+  // Re-attach event listeners after render
+  attachEventListeners();
+}
+
+// ============ EVENT LISTENERS ============
+function attachEventListeners() {
+  // User management buttons
+  document.querySelectorAll('[data-action="edit-user"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const userId = btn.getAttribute('data-id');
+      console.log('🔵 Editar usuario:', userId);
+      openUserModal(userId);
+    });
+  });
+  
+  document.querySelectorAll('[data-action="delete-user"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const userId = btn.getAttribute('data-id');
+      deleteUser(userId);
+    });
+  });
+  
+  // New user button
+  const newUserBtn = document.getElementById('btnNewUser');
+  if (newUserBtn) {
+    newUserBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('🔵 Nuevo usuario');
+      openUserModal(null);
+    });
+  }
+  
+  // Program buttons
+  document.querySelectorAll('[data-action="edit-program"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openProgramModal(btn.getAttribute('data-id'));
+    });
+  });
+  
+  document.querySelectorAll('[data-action="delete-program"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      deleteProgram(btn.getAttribute('data-id'));
+    });
+  });
+  
+  const newProgBtn = document.getElementById('btnNewProgram');
+  if (newProgBtn) newProgBtn.addEventListener('click', () => openProgramModal(null));
+  
+  // Category buttons
+  document.querySelectorAll('[data-action="edit-category"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openCategoryModal(btn.getAttribute('data-id'));
+    });
+  });
+  
+  document.querySelectorAll('[data-action="delete-category"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      deleteCategory(btn.getAttribute('data-id'));
+    });
+  });
+  
+  const newCatBtn = document.getElementById('btnNewCategory');
+  if (newCatBtn) newCatBtn.addEventListener('click', () => openCategoryModal(null));
+  
+  // Center buttons
+  document.querySelectorAll('[data-action="edit-center"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openCenterModal(btn.getAttribute('data-id'));
+    });
+  });
+  
+  document.querySelectorAll('[data-action="delete-center"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      deleteCenter(btn.getAttribute('data-id'));
+    });
+  });
+  
+  const newCenterBtn = document.getElementById('btnNewCenter');
+  if (newCenterBtn) newCenterBtn.addEventListener('click', () => openCenterModal(null));
+}
+
+// ============ LAYOUTS ============
+function renderLogin() {
+  return `
+    <div class="min-h-screen flex items-center justify-center p-4 hero-pattern" style="background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);">
+      <div class="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row fade-in">
+        <div class="md:w-1/2 sena-gradient p-8 text-white flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute inset-0 hero-pattern"></div>
+          <div class="relative z-10">
+            <img src="${LOGO_URL}" alt="SENA" class="h-16 mb-6 bg-white rounded-lg p-2">
+            <h1 class="text-3xl font-bold mb-3">Sistema de Gestión de Oferta Complementaria</h1>
+            <p class="text-green-100 text-lg mb-6">Formación para el trabajo y el desarrollo humano</p>
+            <div class="space-y-3">
+              <div class="flex items-center gap-3"><span class="bg-yellow-400 text-green-900 rounded-full w-8 h-8 flex items-center justify-center font-bold">✓</span><span>${state.programs.length} programas disponibles</span></div>
+              <div class="flex items-center gap-3"><span class="bg-yellow-400 text-green-900 rounded-full w-8 h-8 flex items-center justify-center font-bold">✓</span><span>${state.categories.length} categorías temáticas</span></div>
+              <div class="flex items-center gap-3"><span class="bg-yellow-400 text-green-900 rounded-full w-8 h-8 flex items-center justify-center font-bold">✓</span><span>${state.centers.length} centros de formación</span></div>
+            </div>
+          </div>
+          <div class="relative z-10 mt-8">
+            <img src="${HERO_URL}" class="rounded-xl shadow-lg w-full h-48 object-cover">
+          </div>
+          <div class="relative z-10 mt-4">
+            <div class="firebase-badge text-white px-4 py-2 rounded-lg text-sm font-semibold inline-flex items-center gap-2">
+              <span>🔥</span> Powered by Firebase
+            </div>
+          </div>
+        </div>
+        <div class="md:w-1/2 p-8 md:p-12">
+          <h2 class="text-2xl font-bold text-gray-800 mb-2">Iniciar Sesión</h2>
+          <p class="text-gray-500 mb-6">Ingrese sus credenciales</p>
+          ${state.firebaseError ? `<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">⚠️ ${escapeHtml(state.firebaseError)}</div>` : ''}
+          <form id="loginForm">
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico</label>
+              <input id="loginEmail" type="email" required class="input-sena w-full px-4 py-3 rounded-lg" placeholder="usuario@sena.edu.co">
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Contraseña</label>
+              <input id="loginPassword" type="password" required class="input-sena w-full px-4 py-3 rounded-lg" placeholder="••••••">
+            </div>
+            <button type="submit" class="sena-btn w-full text-white font-semibold py-3 rounded-lg mb-4">Ingresar</button>
+          </form>
+          <div class="flex justify-between text-sm">
+            <a onclick="navigate('recover')" class="text-green-600 hover:text-green-800 cursor-pointer font-medium">¿Olvidó su contraseña?</a>
+            <a onclick="navigate('register')" class="text-green-600 hover:text-green-800 cursor-pointer font-medium">Crear cuenta</a>
+          </div>
+          <div class="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p class="text-xs font-semibold text-yellow-800 mb-2">🔑 Cuentas de prueba:</p>
+            <div class="text-xs text-yellow-700 space-y-1">
+              <div><b>Super Admin:</b> superadmin@sena.edu.co / 123456</div>
+              <div><b>Admin:</b> admin@sena.edu.co / 123456</div>
+              <div><b>Empresario:</b> empresario@sena.edu.co / 123456</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderRegister() {
+  return `
+    <div class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);">
+      <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-8 fade-in">
+        <div class="flex items-center gap-4 mb-6">
+          <img src="${LOGO_URL}" alt="SENA" class="h-12 bg-white rounded-lg p-1 shadow">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800">Registro de Empresario</h2>
+            <p class="text-gray-500 text-sm">Complete sus datos para crear una cuenta</p>
+          </div>
+        </div>
+        <form id="registerForm">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="md:col-span-2"><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre completo *</label><input id="regName" required class="input-sena w-full px-4 py-3 rounded-lg"></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Correo *</label><input id="regEmail" type="email" required class="input-sena w-full px-4 py-3 rounded-lg"></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono *</label><input id="regPhone" required class="input-sena w-full px-4 py-3 rounded-lg"></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Empresa *</label><input id="regCompany" required class="input-sena w-full px-4 py-3 rounded-lg"></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña *</label><input id="regPassword" type="password" required minlength="6" class="input-sena w-full px-4 py-3 rounded-lg"></div>
+          </div>
+          <div class="mt-6 flex gap-3">
+            <button type="button" onclick="navigate('login')" class="flex-1 sena-btn-outline font-semibold py-3 rounded-lg">Cancelar</button>
+            <button type="submit" class="flex-1 sena-btn text-white font-semibold py-3 rounded-lg">Registrarme</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+
+function renderRecover() {
+  return `
+    <div class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);">
+      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 fade-in">
+        <img src="${LOGO_URL}" alt="SENA" class="h-12 mx-auto mb-4">
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Recuperar Contraseña</h2>
+        <form id="recoverForm">
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico</label>
+            <input id="recoverEmail" type="email" required class="input-sena w-full px-4 py-3 rounded-lg">
+          </div>
+          <button type="submit" class="sena-btn w-full text-white font-semibold py-3 rounded-lg mb-3">Enviar enlace</button>
+        </form>
+        <p class="text-center text-sm"><a onclick="navigate('login')" class="text-green-600 font-semibold cursor-pointer">← Volver</a></p>
+      </div>
+    </div>`;
+}
+
+function renderEmpresarioLayout(content) {
+  const user = state.currentUser;
+  const menuItems = [
+    { id: 'catalogo', label: 'Catálogo', icon: '📚' },
+    { id: 'solicitud', label: 'Nueva Solicitud', icon: '📝' },
+    { id: 'historial', label: 'Historial', icon: '📋' },
+    { id: 'perfil', label: 'Mi Perfil', icon: '👤' }
+  ];
+  return `
+    <div class="min-h-screen bg-gray-50">
+      <header class="sena-gradient text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img src="${LOGO_URL}" class="h-10 bg-white rounded-lg p-1">
+            <div class="hide-mobile"><h1 class="font-bold text-lg">Oferta Complementaria 2026</h1><p class="text-xs text-green-100">Portal del Empresario</p></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-right hide-mobile"><p class="font-semibold text-sm">${escapeHtml(user.name)}</p><p class="text-xs text-green-100">${escapeHtml(user.company)}</p></div>
+            <div class="w-10 h-10 rounded-full bg-yellow-400 text-green-900 flex items-center justify-center font-bold">${user.name.charAt(0)}</div>
+            <button onclick="logout()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium">Salir</button>
+          </div>
+        </div>
+      </header>
+      <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
+        <aside class="md:w-64 flex-shrink-0">
+          <nav class="bg-white rounded-xl shadow p-3">
+            ${menuItems.map(item => `<a onclick="navigate('${item.id}')" class="sidebar-link ${state.currentView === item.id ? 'active' : ''} flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${state.currentView === item.id ? 'text-green-700 font-semibold' : 'text-gray-700'}"><span class="text-xl">${item.icon}</span><span>${item.label}</span></a>`).join('')}
+          </nav>
+        </aside>
+        <main class="flex-1 fade-in">${content}</main>
+      </div>
+    </div>`;
+}
+
+function renderAdminLayout(content) {
+  const user = state.currentUser;
+  const menuItems = [
+    { id: 'adminPanel', label: 'Dashboard', icon: '📊' },
+    { id: 'adminRequests', label: 'Solicitudes', icon: '📋' },
+    { id: 'adminReports', label: 'Reportes', icon: '📈' },
+    { id: 'adminAudit', label: 'Auditoría', icon: '🔍' }
+  ];
+  return `
+    <div class="min-h-screen bg-gray-50">
+      <header class="bg-gray-900 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img src="${LOGO_URL}" class="h-10 bg-white rounded-lg p-1">
+            <div class="hide-mobile"><h1 class="font-bold text-lg">Panel Administración</h1><p class="text-xs text-gray-400">Gestión de Solicitudes</p></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-right hide-mobile"><p class="font-semibold text-sm">${escapeHtml(user.name)}</p><span class="badge badge-blue text-xs">Administrador</span></div>
+            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold">${user.name.charAt(0)}</div>
+            <button onclick="logout()" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium">Salir</button>
+          </div>
+        </div>
+      </header>
+      <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
+        <aside class="md:w-64 flex-shrink-0">
+          <nav class="bg-white rounded-xl shadow p-3">
+            ${menuItems.map(item => `<a onclick="navigate('${item.id}')" class="sidebar-link ${state.currentView === item.id ? 'active' : ''} flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${state.currentView === item.id ? 'text-green-700 font-semibold' : 'text-gray-700'}"><span class="text-xl">${item.icon}</span><span>${item.label}</span></a>`).join('')}
+          </nav>
+        </aside>
+        <main class="flex-1 fade-in">${content}</main>
+      </div>
+    </div>`;
+}
+
+function renderSuperLayout(content) {
+  const user = state.currentUser;
+  const menuItems = [
+    { id: 'superPanel', label: 'Dashboard', icon: '📊' },
+    { id: 'superUsers', label: 'Usuarios', icon: '👥' },
+    { id: 'superPrograms', label: 'Programas', icon: '📚' },
+    { id: 'superCategories', label: 'Categorías', icon: '🗂️' },
+    { id: 'superCenters', label: 'Centros', icon: '🏢' },
+    { id: 'superAudit', label: 'Auditoría', icon: '🔍' }
+  ];
+  return `
+    <div class="min-h-screen bg-gray-50">
+      <header class="bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img src="${LOGO_URL}" class="h-10 bg-white rounded-lg p-1">
+            <div class="hide-mobile"><h1 class="font-bold text-lg">Super Administrador</h1><p class="text-xs text-red-200">Control total del sistema</p></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-right hide-mobile"><p class="font-semibold text-sm">${escapeHtml(user.name)}</p><span class="badge badge-red text-xs">Super Admin</span></div>
+            <div class="w-10 h-10 rounded-full bg-yellow-400 text-red-900 flex items-center justify-center font-bold">${user.name.charAt(0)}</div>
+            <button onclick="logout()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium">Salir</button>
+          </div>
+        </div>
+      </header>
+      <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
+        <aside class="md:w-64 flex-shrink-0">
+          <nav class="bg-white rounded-xl shadow p-3">
+            ${menuItems.map(item => `<a onclick="navigate('${item.id}')" class="sidebar-link ${state.currentView === item.id ? 'active' : ''} flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer ${state.currentView === item.id ? 'text-red-600 font-semibold' : 'text-gray-700'}"><span class="text-xl">${item.icon}</span><span>${item.label}</span></a>`).join('')}
+          </nav>
+        </aside>
+        <main class="flex-1 fade-in">${content}</main>
+      </div>
+    </div>`;
+}
+
+// ============ VIEWS ============
+function renderCatalogo() {
+  const filtered = state.programs.filter(p => {
+    const s = !state.searchQuery || p.name.toLowerCase().includes(state.searchQuery.toLowerCase()) || p.description.toLowerCase().includes(state.searchQuery.toLowerCase());
+    const c = !state.filterCategory || p.categoryId === state.filterCategory;
+    const ce = !state.filterCenter || p.centerId === state.filterCenter;
+    return s && c && ce;
+  });
+  return `
+    <div>
+      <div class="bg-white rounded-xl shadow p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-1">Catálogo de Programas</h2>
+        <p class="text-gray-500 text-sm mb-4">${state.programs.length} programas en ${state.categories.length} categorías</p>
+        <div class="flex flex-col md:flex-row gap-3">
+          <input id="searchInput" value="${escapeHtml(state.searchQuery)}" oninput="state.searchQuery=this.value; renderCatalogoOnly();" class="input-sena flex-1 px-4 py-3 rounded-lg" placeholder="🔍 Buscar...">
+          <select onchange="state.filterCategory=this.value; renderCatalogoOnly();" class="input-sena px-4 py-3 rounded-lg md:w-64">
+            <option value="">Todas las categorías</option>
+            ${state.categories.map(c => `<option value="${c.id}" ${state.filterCategory === c.id ? 'selected' : ''}>${c.icon} ${escapeHtml(c.name)}</option>`).join('')}
+          </select>
+          <select onchange="state.filterCenter=this.value; renderCatalogoOnly();" class="input-sena px-4 py-3 rounded-lg md:w-64">
+            <option value="">Todos los centros</option>
+            ${state.centers.map(c => `<option value="${c.id}" ${state.filterCenter === c.id ? 'selected' : ''}>${escapeHtml(c.code)} - ${escapeHtml(c.name)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      ${state.selectedPrograms.length > 0 ? `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mb-6"><div class="flex items-center justify-between"><div><p class="font-semibold text-yellow-800">${state.selectedPrograms.length} seleccionado(s)</p></div><button onclick="navigate('solicitud')" class="sena-btn text-white px-6 py-2 rounded-lg font-semibold">Crear Solicitud →</button></div></div>` : ''}
+      <div id="catalogGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${filtered.map(p => {
+          const cat = state.categories.find(c => c.id === p.categoryId);
+          const center = state.centers.find(c => c.id === p.centerId);
+          const selected = state.selectedPrograms.includes(p.id);
+          return `<div class="program-card ${selected ? 'selected' : ''} bg-white rounded-xl shadow p-5 card-hover cursor-pointer" onclick="toggleProgram('${p.id}')"><div class="flex items-start justify-between mb-3"><span class="text-3xl">${cat?.icon || '📚'}</span>${selected ? '<span class="badge badge-yellow">✓ Seleccionado</span>' : '<span class="badge badge-gray">Disponible</span>'}</div><h3 class="font-bold text-gray-800 mb-1">${escapeHtml(p.name)}</h3><p class="text-xs text-green-600 font-semibold mb-1">${escapeHtml(cat?.name || '')}</p><p class="text-xs text-blue-600 mb-2">🏢 ${escapeHtml(center?.code || '')} - ${escapeHtml(center?.name || '')}</p><p class="text-sm text-gray-600 mb-3 line-clamp-3">${escapeHtml(p.description)}</p><div class="flex items-center justify-between text-xs"><span class="text-gray-500">⏱️ ${escapeHtml(p.duration)}</span><button class="${selected ? 'sena-btn-red' : 'sena-btn'} text-white px-3 py-1 rounded text-xs font-semibold">${selected ? 'Quitar' : 'Seleccionar'}</button></div></div>`;
+        }).join('')}
+      </div>
+      ${filtered.length === 0 ? '<div class="text-center py-12 text-gray-500">No se encontraron programas</div>' : ''}
+    </div>`;
+}
+
+function renderCatalogoOnly() {
+  const main = document.querySelector('main');
+  if (main) main.innerHTML = renderCatalogo();
+  attachEventListeners();
+}
+
+function renderSolicitud() {
+  const selectedPrograms = state.programs.filter(p => state.selectedPrograms.includes(p.id));
+  return `
+    <div class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Nueva Solicitud</h2>
+      <p class="text-gray-500 text-sm mb-6">Complete los datos para enviar su solicitud</p>
+      ${selectedPrograms.length === 0 ? `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg mb-6"><p class="font-semibold text-yellow-800 mb-2">⚠️ No ha seleccionado programas</p><button onclick="navigate('catalogo')" class="sena-btn text-white px-6 py-2 rounded-lg font-semibold">Ir al Catálogo</button></div>` : `
+        <div class="mb-6">
+          <h3 class="font-semibold text-gray-700 mb-3">Programas seleccionados:</h3>
+          <div class="space-y-2">
+            ${selectedPrograms.map(p => { const cat = state.categories.find(c => c.id === p.categoryId); const center = state.centers.find(c => c.id === p.centerId); return `<div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3"><div><span class="font-semibold text-green-800">${escapeHtml(p.name)}</span><div class="text-xs text-green-600">${escapeHtml(cat?.name || '')} · 🏢 ${escapeHtml(center?.code || '')} · ⏱️ ${escapeHtml(p.duration)}</div></div><button onclick="toggleProgram('${p.id}')" class="text-red-500 hover:text-red-700 text-sm font-semibold">✕</button></div>`; }).join('')}
+          </div>
+        </div>
+        <form id="requestForm">
+          <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div><label class="block text-sm font-semibold text-gray-700 mb-2">Rango de aprendices *</label><select id="reqApprenticeRange" required class="input-sena w-full px-4 py-3 rounded-lg"><option value="">Seleccione...</option><option value="0-10">0 - 10</option><option value="11-20">11 - 20</option><option value="21-30">21 - 30</option><option value=">30">Más de 30</option></select></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-2">Horario preferido *</label><select id="reqSchedule" required class="input-sena w-full px-4 py-3 rounded-lg"><option value="">Seleccione...</option><option value="mañana">Mañana</option><option value="tarde">Tarde</option><option value="noche">Noche</option></select></div>
+          </div>
+          <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-2">Observaciones</label><textarea id="reqObservations" rows="4" class="input-sena w-full px-4 py-3 rounded-lg"></textarea></div>
+          <div class="flex gap-3">
+            <button type="button" onclick="state.selectedPrograms=[]; navigate('catalogo');" class="flex-1 sena-btn-outline font-semibold py-3 rounded-lg">Cancelar</button>
+            <button type="submit" class="flex-1 sena-btn text-white font-semibold py-3 rounded-lg">Enviar Solicitud</button>
+          </div>
+        </form>
+      `}
+    </div>`;
+}
+
+function renderHistorial() {
+  const userRequests = state.requests.filter(r => r.userId === state.currentUser.id).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return `
+    <div class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Historial de Solicitudes</h2>
+      <p class="text-gray-500 text-sm mb-6">Consulte el estado de sus solicitudes</p>
+      ${userRequests.length === 0 ? `<div class="text-center py-12"><div class="text-6xl mb-4">📋</div><p class="text-gray-500 mb-4">No tiene solicitudes</p><button onclick="navigate('catalogo')" class="sena-btn text-white px-6 py-2 rounded-lg font-semibold">Explorar</button></div>` : `
+        <div class="space-y-4">
+          ${userRequests.map(r => {
+            const statusColors = { pendiente: 'badge-yellow', aprobada: 'badge-green', rechazada: 'badge-red', en_proceso: 'badge-blue' };
+            const statusLabels = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada', en_proceso: 'En proceso' };
+            const programs = r.programs.map(pid => state.programs.find(p => p.id === pid)).filter(Boolean);
+            return `<div class="border border-gray-200 rounded-xl p-5 hover:shadow-md transition"><div class="flex flex-col md:flex-row md:items-center justify-between mb-3 gap-2"><div><p class="text-xs text-gray-500">#${r.id.slice(-6).toUpperCase()} · ${r.createdAt}</p><h3 class="font-bold text-gray-800">${programs.map(p => escapeHtml(p.name)).join(', ')}</h3></div><span class="badge ${statusColors[r.status]}">${statusLabels[r.status]}</span></div><div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm"><div><span class="text-gray-500">Aprendices:</span> <b>${escapeHtml(r.apprenticeRange)}</b></div><div><span class="text-gray-500">Horario:</span> <b class="capitalize">${escapeHtml(r.schedule)}</b></div><div><span class="text-gray-500">Programas:</span> <b>${programs.length}</b></div><div><span class="text-gray-500">Fecha:</span> <b>${r.createdAt}</b></div></div>${r.observations ? `<div class="mt-3 pt-3 border-t text-sm"><span class="text-gray-500">Observaciones:</span> <p class="text-gray-700 mt-1">${escapeHtml(r.observations)}</p></div>` : ''}</div>`;
+          }).join('')}
+        </div>
+      `}
+    </div>`;
+}
+
+function renderPerfil() {
+  const user = state.currentUser;
+  return `
+    <div class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Mi Perfil</h2>
+      <div class="flex items-center gap-4 mb-6 pb-6 border-b">
+        <div class="w-20 h-20 rounded-full sena-gradient text-white flex items-center justify-center text-3xl font-bold">${user.name.charAt(0)}</div>
+        <div><h3 class="text-xl font-bold text-gray-800">${escapeHtml(user.name)}</h3><p class="text-gray-500">${escapeHtml(user.email)}</p><span class="badge badge-green mt-1">Empresario</span></div>
+      </div>
+      <form id="profileForm">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div><label class="block text-sm font-semibold text-gray-700 mb-2">Nombre</label><input id="profName" value="${escapeHtml(user.name)}" class="input-sena w-full px-4 py-3 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-2">Correo</label><input value="${escapeHtml(user.email)}" disabled class="bg-gray-100 w-full px-4 py-3 rounded-lg text-gray-500"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono</label><input id="profPhone" value="${escapeHtml(user.phone || '')}" class="input-sena w-full px-4 py-3 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-2">Empresa</label><input id="profCompany" value="${escapeHtml(user.company || '')}" class="input-sena w-full px-4 py-3 rounded-lg"></div>
+        </div>
+        <button type="submit" class="sena-btn text-white font-semibold py-3 px-8 rounded-lg mt-6">Guardar cambios</button>
+      </form>
+    </div>`;
+}
+
+// ============ ADMIN VIEWS ============
+function renderAdminDashboard() {
+  const total = state.requests.length;
+  const pendientes = state.requests.filter(r => r.status === 'pendiente').length;
+  const aprobadas = state.requests.filter(r => r.status === 'aprobada').length;
+  const enProceso = state.requests.filter(r => r.status === 'en_proceso').length;
+  return `
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Dashboard</h2>
+      <p class="text-gray-500 text-sm mb-6">Resumen general</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card border-l-4 border-blue-500"><p class="text-gray-500 text-sm">Total</p><p class="text-3xl font-bold">${total}</p></div>
+        <div class="stat-card border-l-4 border-yellow-500"><p class="text-gray-500 text-sm">Pendientes</p><p class="text-3xl font-bold text-yellow-600">${pendientes}</p></div>
+        <div class="stat-card border-l-4 border-green-500"><p class="text-gray-500 text-sm">Aprobadas</p><p class="text-3xl font-bold text-green-600">${aprobadas}</p></div>
+        <div class="stat-card border-l-4 border-purple-500"><p class="text-gray-500 text-sm">En Proceso</p><p class="text-3xl font-bold text-purple-600">${enProceso}</p></div>
+      </div>
+      <div class="bg-white rounded-xl shadow p-6">
+        <h3 class="font-bold text-gray-800 mb-4">Solicitudes Recientes</h3>
+        <div class="space-y-3">
+          ${state.requests.slice(-5).reverse().map(r => { const user = state.users.find(u => u.id === r.userId); const statusColors = { pendiente: 'badge-yellow', aprobada: 'badge-green', rechazada: 'badge-red', en_proceso: 'badge-blue' }; const statusLabels = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada', en_proceso: 'En proceso' }; return `<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><div><p class="font-semibold text-sm">${escapeHtml(user?.name || 'Desconocido')}</p><p class="text-xs text-gray-500">${escapeHtml(user?.company || '')} · ${r.createdAt}</p></div><span class="badge ${statusColors[r.status]}">${statusLabels[r.status]}</span></div>`; }).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderAdminRequests() {
+  const filtered = state.requests.filter(r => !state.filterStatus || r.status === state.filterStatus).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return `
+    <div>
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-3">
+        <div><h2 class="text-2xl font-bold text-gray-800">Gestión de Solicitudes</h2><p class="text-gray-500 text-sm">Administre las solicitudes</p></div>
+        <select onchange="state.filterStatus=this.value; render();" class="input-sena px-4 py-2 rounded-lg md:w-48">
+          <option value="">Todos los estados</option>
+          <option value="pendiente" ${state.filterStatus === 'pendiente' ? 'selected' : ''}>Pendientes</option>
+          <option value="aprobada" ${state.filterStatus === 'aprobada' ? 'selected' : ''}>Aprobadas</option>
+          <option value="en_proceso" ${state.filterStatus === 'en_proceso' ? 'selected' : ''}>En proceso</option>
+          <option value="rechazada" ${state.filterStatus === 'rechazada' ? 'selected' : ''}>Rechazadas</option>
+        </select>
+      </div>
+      ${filtered.length === 0 ? '<div class="bg-white rounded-xl shadow p-12 text-center text-gray-500">No hay solicitudes</div>' : `
+        <div class="space-y-4">
+          ${filtered.map(r => {
+            const user = state.users.find(u => u.id === r.userId);
+            const programs = r.programs.map(pid => state.programs.find(p => p.id === pid)).filter(Boolean);
+            const statusColors = { pendiente: 'badge-yellow', aprobada: 'badge-green', rechazada: 'badge-red', en_proceso: 'badge-blue' };
+            const statusLabels = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada', en_proceso: 'En proceso' };
+            return `<div class="bg-white rounded-xl shadow p-5"><div class="flex flex-col md:flex-row md:items-center justify-between mb-3 gap-2"><div><p class="text-xs text-gray-500">#${r.id.slice(-6).toUpperCase()} · ${r.createdAt}</p><h3 class="font-bold text-gray-800">${escapeHtml(user?.name || '')} <span class="text-sm font-normal text-gray-500">· ${escapeHtml(user?.company || '')}</span></h3><p class="text-xs text-gray-500">${escapeHtml(user?.email || '')}</p></div><span class="badge ${statusColors[r.status]}">${statusLabels[r.status]}</span></div><div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-3 p-3 bg-gray-50 rounded-lg"><div><span class="text-gray-500">Aprendices:</span> <b>${escapeHtml(r.apprenticeRange)}</b></div><div><span class="text-gray-500">Horario:</span> <b class="capitalize">${escapeHtml(r.schedule)}</b></div><div class="col-span-2"><span class="text-gray-500">Programas:</span> <b>${programs.map(p => escapeHtml(p.name)).join(', ')}</b></div></div>${r.observations ? `<p class="text-sm text-gray-700 mb-3"><b>Observaciones:</b> ${escapeHtml(r.observations)}</p>` : ''}<div class="flex flex-wrap gap-2"><button onclick="updateRequestStatus('${r.id}','aprobada')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">✓ Aprobar</button><button onclick="updateRequestStatus('${r.id}','en_proceso')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">⚙ En proceso</button><button onclick="updateRequestStatus('${r.id}','rechazada')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">✕ Rechazar</button></div></div>`;
+          }).join('')}
+        </div>
+      `}
+    </div>`;
+}
+
+function renderAdminReports() {
+  return `
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Reportes</h2>
+      <p class="text-gray-500 text-sm mb-6">Genere y exporte reportes</p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="stat-card"><h3 class="font-bold text-gray-800 mb-2">📋 Solicitudes</h3><div class="flex gap-2"><button onclick="exportRequestsPDF()" class="sena-btn text-white px-4 py-2 rounded-lg text-sm font-semibold">PDF</button><button onclick="exportRequestsExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">Excel</button></div></div>
+        <div class="stat-card"><h3 class="font-bold text-gray-800 mb-2">👥 Usuarios</h3><div class="flex gap-2"><button onclick="exportUsersPDF()" class="sena-btn text-white px-4 py-2 rounded-lg text-sm font-semibold">PDF</button><button onclick="exportUsersExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">Excel</button></div></div>
+        <div class="stat-card"><h3 class="font-bold text-gray-800 mb-2">📚 Programas</h3><div class="flex gap-2"><button onclick="exportProgramsPDF()" class="sena-btn text-white px-4 py-2 rounded-lg text-sm font-semibold">PDF</button><button onclick="exportProgramsExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">Excel</button></div></div>
+        <div class="stat-card"><h3 class="font-bold text-gray-800 mb-2">📈 Estadísticas</h3><div class="space-y-2 text-sm"><div class="flex justify-between"><span class="text-gray-500">Empresarios:</span><b>${state.users.filter(u => u.role === 'empresario').length}</b></div><div class="flex justify-between"><span class="text-gray-500">Solicitudes:</span><b>${state.requests.length}</b></div><div class="flex justify-between"><span class="text-gray-500">Programas:</span><b>${state.programs.length}</b></div></div></div>
+      </div>
+    </div>`;
+}
+
+function renderAdminAudit() {
+  return `
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Auditoría</h2>
+      <p class="text-gray-500 text-sm mb-6">Registro de acciones</p>
+      <div class="bg-white rounded-xl shadow overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50"><tr><th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Fecha</th><th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Usuario</th><th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Acción</th></tr></thead>
+          <tbody class="divide-y">
+            ${state.audit.slice().reverse().map(a => { const user = state.users.find(u => u.id === a.userId); return `<tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm text-gray-600">${escapeHtml(a.timestamp)}</td><td class="px-6 py-3 text-sm font-medium">${escapeHtml(user?.name || 'Sistema')}</td><td class="px-6 py-3 text-sm text-gray-700">${escapeHtml(a.action)}</td></tr>`; }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+// ============ SUPER ADMIN VIEWS ============
+function renderSuperDashboard() {
+  return `
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Panel Super Administrador</h2>
+      <p class="text-gray-500 text-sm mb-6">Control total del sistema</p>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div class="stat-card border-l-4 border-green-500"><p class="text-gray-500 text-sm">Usuarios</p><p class="text-3xl font-bold">${state.users.length}</p></div>
+        <div class="stat-card border-l-4 border-blue-500"><p class="text-gray-500 text-sm">Programas</p><p class="text-3xl font-bold">${state.programs.length}</p></div>
+        <div class="stat-card border-l-4 border-yellow-500"><p class="text-gray-500 text-sm">Categorías</p><p class="text-3xl font-bold">${state.categories.length}</p></div>
+        <div class="stat-card border-l-4 border-purple-500"><p class="text-gray-500 text-sm">Centros</p><p class="text-3xl font-bold">${state.centers.length}</p></div>
+        <div class="stat-card border-l-4 border-red-500"><p class="text-gray-500 text-sm">Solicitudes</p><p class="text-3xl font-bold">${state.requests.length}</p></div>
+      </div>
+    </div>`;
+}
+
+// ============ SUPER ADMIN - USUARIOS (CORREGIDO) ============
+function renderSuperUsers() {
+  return `
+    <div>
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800">Gestión de Usuarios</h2>
+          <p class="text-gray-500 text-sm">Administre todos los usuarios del sistema</p>
+        </div>
+        <button id="btnNewUser" class="sena-btn text-white px-4 py-2 rounded-lg font-semibold">+ Nuevo Usuario</button>
+      </div>
+      <div class="bg-white rounded-xl shadow overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Nombre</th>
+              <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600 hide-mobile">Correo</th>
+              <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600 hide-mobile">Empresa</th>
+              <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Rol</th>
+              <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            ${state.users.map(u => {
+              const roleColors = { empresario: 'badge-green', admin: 'badge-blue', superadmin: 'badge-red' };
+              const roleLabels = { empresario: 'Empresario', admin: 'Admin', superadmin: 'Super Admin' };
+              return `
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-3">
+                    <div class="flex items-center gap-2">
+                      <div class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-sm">${u.name.charAt(0)}</div>
+                      <div>
+                        <p class="font-medium text-sm">${escapeHtml(u.name)}</p>
+                        <p class="text-xs text-gray-500 md:hidden">${escapeHtml(u.email)}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-3 text-sm text-gray-600 hide-mobile">${escapeHtml(u.email)}</td>
+                  <td class="px-6 py-3 text-sm text-gray-600 hide-mobile">${escapeHtml(u.company || '-')}</td>
+                  <td class="px-6 py-3"><span class="badge ${roleColors[u.role]}">${roleLabels[u.role]}</span></td>
+                  <td class="px-6 py-3">
+                    <div class="flex gap-2">
+                      <button type="button" data-action="edit-user" data-id="${u.id}" class="btn-edit">✏️ Editar</button>
+                      ${u.role !== 'superadmin' ? `<button type="button" data-action="delete-user" data-id="${u.id}" class="btn-delete">🗑️ Eliminar</button>` : ''}
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p class="text-sm text-blue-800"><b>ℹ️ Total de usuarios:</b> ${state.users.length} | <b>Empresarios:</b> ${state.users.filter(u => u.role === 'empresario').length} | <b>Admins:</b> ${state.users.filter(u => u.role === 'admin').length}</p>
+      </div>
+    </div>`;
+}
+
+function renderSuperPrograms() {
+  return `
+    <div>
+      <div class="flex items-center justify-between mb-6">
+        <div><h2 class="text-2xl font-bold text-gray-800">Gestión de Programas</h2><p class="text-gray-500 text-sm">Administre los programas</p></div>
+        <button id="btnNewProgram" class="sena-btn text-white px-4 py-2 rounded-lg font-semibold">+ Nuevo Programa</button>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${state.programs.map(p => {
+          const cat = state.categories.find(c => c.id === p.categoryId);
+          const center = state.centers.find(c => c.id === p.centerId);
+          return `<div class="bg-white rounded-xl shadow p-5 card-hover"><div class="flex items-start justify-between mb-3"><span class="text-3xl">${cat?.icon || '📚'}</span><div class="flex gap-1"><button type="button" data-action="edit-program" data-id="${p.id}" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded" title="Editar">✏️</button><button type="button" data-action="delete-program" data-id="${p.id}" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded" title="Eliminar">🗑️</button></div></div><h3 class="font-bold text-gray-800 mb-1">${escapeHtml(p.name)}</h3><p class="text-xs text-green-600 font-semibold mb-1">${escapeHtml(cat?.name || '')}</p><p class="text-xs text-blue-600 mb-2">🏢 ${escapeHtml(center?.code || '')} - ${escapeHtml(center?.name || '')}</p><p class="text-sm text-gray-600 mb-3 line-clamp-2">${escapeHtml(p.description)}</p><div class="text-xs text-gray-500">⏱️ ${escapeHtml(p.duration)}</div></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function renderSuperCategories() {
+  return `
+    <div>
+      <div class="flex items-center justify-between mb-6">
+        <div><h2 class="text-2xl font-bold text-gray-800">Gestión de Categorías</h2><p class="text-gray-500 text-sm">Administre las categorías</p></div>
+        <button id="btnNewCategory" class="sena-btn text-white px-4 py-2 rounded-lg font-semibold">+ Nueva Categoría</button>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${state.categories.map(c => {
+          const count = state.programs.filter(p => p.categoryId === c.id).length;
+          return `<div class="bg-white rounded-xl shadow p-5 card-hover"><div class="flex items-start justify-between mb-3"><span class="text-4xl">${c.icon}</span><div class="flex gap-1"><button type="button" data-action="edit-category" data-id="${c.id}" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">✏️</button><button type="button" data-action="delete-category" data-id="${c.id}" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded">🗑️</button></div></div><h3 class="font-bold text-gray-800 mb-1">${escapeHtml(c.name)}</h3><p class="text-sm text-gray-600 mb-3">${escapeHtml(c.description)}</p><span class="badge badge-green">${count} programa(s)</span></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function renderSuperCenters() {
+  return `
+    <div>
+      <div class="flex items-center justify-between mb-6">
+        <div><h2 class="text-2xl font-bold text-gray-800">Gestión de Centros</h2><p class="text-gray-500 text-sm">Administre los centros de formación</p></div>
+        <button id="btnNewCenter" class="sena-btn text-white px-4 py-2 rounded-lg font-semibold">+ Nuevo Centro</button>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${state.centers.map(c => {
+          const count = state.programs.filter(p => p.centerId === c.id).length;
+          return `<div class="bg-white rounded-xl shadow p-5 card-hover"><div class="flex items-start justify-between mb-3"><div><h3 class="font-bold text-gray-800 mb-1">${escapeHtml(c.name)}</h3><p class="text-xs text-gray-500">📍 ${escapeHtml(c.regional)}</p></div><div class="flex gap-1"><button type="button" data-action="edit-center" data-id="${c.id}" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">✏️</button><button type="button" data-action="delete-center" data-id="${c.id}" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded">🗑️</button></div></div><div class="flex items-center gap-2 mb-2"><span class="badge badge-blue">${escapeHtml(c.code)}</span><span class="badge badge-green">${count} programa(s)</span></div></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ============ MODALES (SISTEMA ROBUSTO CON createElement) ============
+function closeModal() {
+  document.getElementById('modalContainer').innerHTML = '';
+}
+
+function createModal(contentHTML) {
+  const container = document.getElementById('modalContainer');
+  container.innerHTML = '';
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4';
+  overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
+  
+  const content = document.createElement('div');
+  content.className = 'modal-content bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto';
+  content.innerHTML = contentHTML;
+  
+  overlay.appendChild(content);
+  container.appendChild(overlay);
+}
+
+function openUserModal(userId) {
+  console.log('🔵 Abriendo modal usuario:', userId);
+  const user = userId ? state.users.find(u => u.id === userId) : null;
+  
+  const html = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">${user ? '✏️ Editar Usuario' : '➕ Nuevo Usuario'}</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      </div>
+      <form id="userForm">
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre completo *</label>
+            <input id="mUserName" value="${escapeHtml(user?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg" placeholder="Juan Pérez">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Correo electrónico *</label>
+            <input id="mUserEmail" type="email" value="${escapeHtml(user?.email || '')}" required class="input-sena w-full px-4 py-2 rounded-lg" placeholder="correo@empresa.com">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
+            <input id="mUserPhone" value="${escapeHtml(user?.phone || '')}" class="input-sena w-full px-4 py-2 rounded-lg" placeholder="3001234567">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Empresa</label>
+            <input id="mUserCompany" value="${escapeHtml(user?.company || '')}" class="input-sena w-full px-4 py-2 rounded-lg" placeholder="Nombre de la empresa">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Rol *</label>
+            <select id="mUserRole" required class="input-sena w-full px-4 py-2 rounded-lg">
+              <option value="empresario" ${user?.role === 'empresario' ? 'selected' : ''}>Empresario</option>
+              <option value="admin" ${user?.role === 'admin' ? 'selected' : ''}>Administrador</option>
+              <option value="superadmin" ${user?.role === 'superadmin' ? 'selected' : ''}>Super Administrador</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">
+              Contraseña ${user ? '(dejar vacío para no cambiar)' : '*'}
+            </label>
+            <input id="mUserPassword" type="password" ${!user ? 'required minlength="6"' : 'minlength="6"'} class="input-sena w-full px-4 py-2 rounded-lg" placeholder="${user ? 'Nueva contraseña (opcional)' : 'Mínimo 6 caracteres'}">
+          </div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button type="button" onclick="closeModal()" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold">Cancelar</button>
+          <button type="submit" class="flex-1 sena-btn text-white py-2 rounded-lg font-semibold">💾 Guardar</button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  createModal(html);
+  
+  // Attach form submit handler
+  document.getElementById('userForm').onsubmit = (e) => {
+    e.preventDefault();
+    saveUser(userId);
+  };
+}
+
+function openProgramModal(programId) {
+  console.log('🔵 Abriendo modal programa:', programId);
+  const program = programId ? state.programs.find(p => p.id === programId) : null;
+  
+  const html = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">${program ? '✏️ Editar Programa' : '➕ Nuevo Programa'}</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      </div>
+      <form id="programForm">
+        <div class="space-y-3">
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mProgName" value="${escapeHtml(program?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Categoría *</label><select id="mProgCat" required class="input-sena w-full px-4 py-2 rounded-lg">${state.categories.map(c => `<option value="${c.id}" ${program?.categoryId === c.id ? 'selected' : ''}>${c.icon} ${escapeHtml(c.name)}</option>`).join('')}</select></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Centro *</label><select id="mProgCenter" required class="input-sena w-full px-4 py-2 rounded-lg">${state.centers.map(c => `<option value="${c.id}" ${program?.centerId === c.id ? 'selected' : ''}>${escapeHtml(c.code)} - ${escapeHtml(c.name)}</option>`).join('')}</select></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Descripción *</label><textarea id="mProgDesc" required rows="3" class="input-sena w-full px-4 py-2 rounded-lg">${escapeHtml(program?.description || '')}</textarea></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Duración *</label><input id="mProgDuration" value="${escapeHtml(program?.duration || '')}" required class="input-sena w-full px-4 py-2 rounded-lg" placeholder="48h"></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nivel</label><select id="mProgLevel" class="input-sena w-full px-4 py-2 rounded-lg"><option value="Complementario" ${(!program?.level || program?.level === 'Complementario') ? 'selected' : ''}>Complementario</option><option value="Técnico" ${program?.level === 'Técnico' ? 'selected' : ''}>Técnico</option><option value="Tecnólogo" ${program?.level === 'Tecnólogo' ? 'selected' : ''}>Tecnólogo</option></select></div>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button type="button" onclick="closeModal()" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold">Cancelar</button>
+          <button type="submit" class="flex-1 sena-btn text-white py-2 rounded-lg font-semibold">💾 Guardar</button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  createModal(html);
+  document.getElementById('programForm').onsubmit = (e) => { e.preventDefault(); saveProgram(programId); };
+}
+
+function openCategoryModal(catId) {
+  console.log('🔵 Abriendo modal categoría:', catId);
+  const cat = catId ? state.categories.find(c => c.id === catId) : null;
+  
+  const html = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">${cat ? '✏️ Editar Categoría' : '➕ Nueva Categoría'}</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      </div>
+      <form id="categoryForm">
+        <div class="space-y-3">
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mCatName" value="${escapeHtml(cat?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Ícono (emoji)</label><input id="mCatIcon" value="${escapeHtml(cat?.icon || '📚')}" class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Descripción *</label><textarea id="mCatDesc" required rows="3" class="input-sena w-full px-4 py-2 rounded-lg">${escapeHtml(cat?.description || '')}</textarea></div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button type="button" onclick="closeModal()" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold">Cancelar</button>
+          <button type="submit" class="flex-1 sena-btn text-white py-2 rounded-lg font-semibold">💾 Guardar</button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  createModal(html);
+  document.getElementById('categoryForm').onsubmit = (e) => { e.preventDefault(); saveCategory(catId); };
+}
+
+function openCenterModal(centerId) {
+  console.log('🔵 Abriendo modal centro:', centerId);
+  const center = centerId ? state.centers.find(c => c.id === centerId) : null;
+  
+  const html = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">${center ? '✏️ Editar Centro' : '➕ Nuevo Centro'}</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      </div>
+      <form id="centerForm">
+        <div class="space-y-3">
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mCenterName" value="${escapeHtml(center?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Código *</label><input id="mCenterCode" value="${escapeHtml(center?.code || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Regional *</label><input id="mCenterRegional" value="${escapeHtml(center?.regional || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button type="button" onclick="closeModal()" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold">Cancelar</button>
+          <button type="submit" class="flex-1 sena-btn text-white py-2 rounded-lg font-semibold">💾 Guardar</button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  createModal(html);
+  document.getElementById('centerForm').onsubmit = (e) => { e.preventDefault(); saveCenter(centerId); };
+}
+
+// ============ HANDLERS ============
+document.addEventListener('DOMContentLoaded', () => {
+  // Login form
+  document.addEventListener('submit', (e) => {
+    if (e.target.id === 'loginForm') {
+      e.preventDefault();
+      login(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
+    } else if (e.target.id === 'registerForm') {
+      e.preventDefault();
+      register({
+        name: document.getElementById('regName').value,
+        email: document.getElementById('regEmail').value,
+        phone: document.getElementById('regPhone').value,
+        company: document.getElementById('regCompany').value,
+        password: document.getElementById('regPassword').value
+      });
+    } else if (e.target.id === 'recoverForm') {
+      e.preventDefault();
+      const email = document.getElementById('recoverEmail').value;
+      if (state.users.find(u => u.email === email)) {
+        showToast('Enlace enviado a ' + email, 'success');
+        setTimeout(() => navigate('login'), 1500);
+      } else {
+        showToast('Correo no registrado', 'error');
+      }
+    } else if (e.target.id === 'requestForm') {
+      e.preventDefault();
+      handleSubmitRequest();
+    } else if (e.target.id === 'profileForm') {
+      e.preventDefault();
+      handleUpdateProfile();
+    }
+  });
+});
+
+function toggleProgram(id) {
+  const idx = state.selectedPrograms.indexOf(id);
+  if (idx > -1) state.selectedPrograms.splice(idx, 1);
+  else state.selectedPrograms.push(id);
+  render();
+}
+
+async function handleSubmitRequest() {
+  if (state.selectedPrograms.length === 0) { showToast('Seleccione al menos un programa', 'error'); return; }
+  const req = {
+    id: generateId(),
+    userId: state.currentUser.id,
+    programs: [...state.selectedPrograms],
+    apprenticeRange: document.getElementById('reqApprenticeRange').value,
+    schedule: document.getElementById('reqSchedule').value,
+    observations: document.getElementById('reqObservations').value,
+    status: 'pendiente',
+    createdAt: new Date().toISOString().split('T')[0]
+  };
+  state.requests.push(req);
+  await saveToFirebase('requests', req, req.id);
+  await addAudit(`Registro de solicitud ${req.id}`);
+  showToast('✓ Solicitud enviada', 'success');
+  state.selectedPrograms = [];
+  navigate('historial');
+}
+
+async function handleUpdateProfile() {
+  state.currentUser.name = document.getElementById('profName').value;
+  state.currentUser.phone = document.getElementById('profPhone').value;
+  state.currentUser.company = document.getElementById('profCompany').value;
+  const idx = state.users.findIndex(u => u.id === state.currentUser.id);
+  state.users[idx] = state.currentUser;
+  await updateFirebase('users', state.currentUser.id, state.currentUser);
+  await addAudit('Actualización de perfil');
+  showToast('Perfil actualizado', 'success');
+  render();
+}
+
+async function updateRequestStatus(id, status) {
+  const req = state.requests.find(r => r.id === id);
+  if (req) {
+    req.status = status;
+    await updateFirebase('requests', id, { status });
+    await addAudit(`Cambio estado solicitud ${id} a ${status}`);
+    showToast('Solicitud actualizada', 'success');
+    render();
+  }
+}
+
+// ============ SAVE FUNCTIONS ============
+async function saveUser(userId) {
+  console.log('💾 Guardando usuario:', userId);
+  const name = document.getElementById('mUserName').value.trim();
+  const email = document.getElementById('mUserEmail').value.trim();
+  const phone = document.getElementById('mUserPhone').value.trim();
+  const company = document.getElementById('mUserCompany').value.trim();
+  const role = document.getElementById('mUserRole').value;
+  const password = document.getElementById('mUserPassword').value;
+  
+  if (!name || !email) {
+    showToast('Nombre y correo son obligatorios', 'error');
+    return;
+  }
+  
+  if (userId) {
+    const idx = state.users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      state.users[idx].name = name;
+      state.users[idx].email = email;
+      state.users[idx].phone = phone;
+      state.users[idx].company = company;
+      state.users[idx].role = role;
+      if (password && password.trim() !== '') {
+        state.users[idx].password = password;
+      }
+      await updateFirebase('users', userId, state.users[idx]);
+      await addAudit(`Edición usuario: ${email}`);
+      showToast('✅ Usuario actualizado', 'success');
+    }
+  } else {
+    if (!password || password.length < 6) {
+      showToast('La contraseña debe tener al menos 6 caracteres', 'error');
+      return;
+    }
+    if (state.users.find(u => u.email === email)) {
+      showToast('El correo ya está registrado', 'error');
+      return;
+    }
+    const newUser = {
+      id: generateId(),
+      name, email, phone, company, role, password,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    state.users.push(newUser);
+    await saveToFirebase('users', newUser, newUser.id);
+    await addAudit(`Creación usuario: ${email}`);
+    showToast('✅ Usuario creado', 'success');
+  }
+  closeModal();
+  render();
+}
+
+async function deleteUser(id) {
+  if (!confirm('¿Eliminar este usuario?')) return;
+  const user = state.users.find(u => u.id === id);
+  state.users = state.users.filter(u => u.id !== id);
+  await deleteFromFirebase('users', id);
+  await addAudit(`Eliminación usuario: ${user?.email}`);
+  showToast('Usuario eliminado', 'success');
+  render();
+}
+
+async function saveProgram(programId) {
+  console.log('💾 Guardando programa:', programId);
+  const data = {
+    name: document.getElementById('mProgName').value.trim(),
+    categoryId: document.getElementById('mProgCat').value,
+    centerId: document.getElementById('mProgCenter').value,
+    description: document.getElementById('mProgDesc').value.trim(),
+    duration: document.getElementById('mProgDuration').value.trim(),
+    level: document.getElementById('mProgLevel').value
+  };
+  
+  if (programId) {
+    const idx = state.programs.findIndex(p => p.id === programId);
+    if (idx !== -1) {
+      state.programs[idx] = { ...state.programs[idx], ...data };
+      await updateFirebase('programs', programId, state.programs[idx]);
+      await addAudit(`Edición programa: ${data.name}`);
+      showToast('✅ Programa actualizado', 'success');
+    }
+  } else {
+    data.id = generateId();
+    state.programs.push(data);
+    await saveToFirebase('programs', data, data.id);
+    await addAudit(`Creación programa: ${data.name}`);
+    showToast('✅ Programa creado', 'success');
+  }
+  closeModal();
+  render();
+}
+
+async function deleteProgram(id) {
+  if (!confirm('¿Eliminar este programa?')) return;
+  const program = state.programs.find(p => p.id === id);
+  state.programs = state.programs.filter(p => p.id !== id);
+  await deleteFromFirebase('programs', id);
+  await addAudit(`Eliminación programa: ${program?.name}`);
+  showToast('Programa eliminado', 'success');
+  render();
+}
+
+async function saveCategory(catId) {
+  console.log('💾 Guardando categoría:', catId);
+  const data = {
+    name: document.getElementById('mCatName').value.trim(),
+    icon: document.getElementById('mCatIcon').value.trim(),
+    description: document.getElementById('mCatDesc').value.trim()
+  };
+  
+  if (catId) {
+    const idx = state.categories.findIndex(c => c.id === catId);
+    if (idx !== -1) {
+      state.categories[idx] = { ...state.categories[idx], ...data };
+      await updateFirebase('categories', catId, state.categories[idx]);
+      await addAudit(`Edición categoría: ${data.name}`);
+      showToast('✅ Categoría actualizada', 'success');
+    }
+  } else {
+    data.id = generateId();
+    state.categories.push(data);
+    await saveToFirebase('categories', data, data.id);
+    await addAudit(`Creación categoría: ${data.name}`);
+    showToast('✅ Categoría creada', 'success');
+  }
+  closeModal();
+  render();
+}
+
+async function deleteCategory(id) {
+  const count = state.programs.filter(p => p.categoryId === id).length;
+  if (count > 0) { showToast(`No se puede eliminar: tiene ${count} programa(s)`, 'error'); return; }
+  if (!confirm('¿Eliminar esta categoría?')) return;
+  const cat = state.categories.find(c => c.id === id);
+  state.categories = state.categories.filter(c => c.id !== id);
+  await deleteFromFirebase('categories', id);
+  await addAudit(`Eliminación categoría: ${cat?.name}`);
+  showToast('Categoría eliminada', 'success');
+  render();
+}
+
+async function saveCenter(centerId) {
+  console.log('💾 Guardando centro:', centerId);
+  const data = {
+    name: document.getElementById('mCenterName').value.trim(),
+    code: document.getElementById('mCenterCode').value.trim(),
+    regional: document.getElementById('mCenterRegional').value.trim()
+  };
+  
+  if (centerId) {
+    const idx = state.centers.findIndex(c => c.id === centerId);
+    if (idx !== -1) {
+      state.centers[idx] = { ...state.centers[idx], ...data };
+      await updateFirebase('centers', centerId, state.centers[idx]);
+      await addAudit(`Edición centro: ${data.name}`);
+      showToast('✅ Centro actualizado', 'success');
+    }
+  } else {
+    data.id = generateId();
+    state.centers.push(data);
+    await saveToFirebase('centers', data, data.id);
+    await addAudit(`Creación centro: ${data.name}`);
+    showToast('✅ Centro creado', 'success');
+  }
+  closeModal();
+  render();
+}
+
+async function deleteCenter(id) {
+  const count = state.programs.filter(p => p.centerId === id).length;
+  if (count > 0) { showToast(`No se puede eliminar: tiene ${count} programa(s)`, 'error'); return; }
+  if (!confirm('¿Eliminar este centro?')) return;
+  const center = state.centers.find(c => c.id === id);
+  state.centers = state.centers.filter(c => c.id !== id);
+  await deleteFromFirebase('centers', id);
+  await addAudit(`Eliminación centro: ${center?.name}`);
+  showToast('Centro eliminado', 'success');
+  render();
+}
+
+// ============ EXPORTS ============
+function exportRequestsPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16); doc.setTextColor(57,169,0);
+  doc.text('SENA - Solicitudes', 14, 20);
+  doc.setFontSize(10); doc.setTextColor(100);
+  doc.text(`Generado: ${new Date().toLocaleString('es-CO')}`, 14, 28);
+  const rows = state.requests.map(r => {
+    const u = state.users.find(x => x.id === r.userId);
+    const progs = r.programs.map(pid => state.programs.find(p => p.id === pid)).filter(Boolean).map(p => p.name).join(', ');
+    return [r.id.slice(-6).toUpperCase(), u?.name || '', u?.company || '', progs.substring(0,40), r.apprenticeRange, r.schedule, r.status, r.createdAt];
+  });
+  doc.autoTable({ startY: 35, head: [['ID','Empresario','Empresa','Programas','Aprendices','Horario','Estado','Fecha']], body: rows, theme: 'grid', headStyles: { fillColor: [57,169,0] } });
+  doc.save('solicitudes_sena.pdf');
+  showToast('PDF exportado', 'success');
+}
+
+function exportRequestsExcel() {
+  const data = state.requests.map(r => {
+    const u = state.users.find(x => x.id === r.userId);
+    const progs = r.programs.map(pid => state.programs.find(p => p.id === pid)).filter(Boolean).map(p => p.name).join(', ');
+    return { ID: r.id.slice(-6).toUpperCase(), Empresario: u?.name, Empresa: u?.company, Programas: progs, Aprendices: r.apprenticeRange, Horario: r.schedule, Estado: r.status, Fecha: r.createdAt };
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Solicitudes');
+  XLSX.writeFile(wb, 'solicitudes_sena.xlsx');
+  showToast('Excel exportado', 'success');
+}
+
+function exportUsersPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16); doc.setTextColor(57,169,0);
+  doc.text('SENA - Usuarios', 14, 20);
+  doc.setFontSize(10); doc.setTextColor(100);
+  doc.text(`Generado: ${new Date().toLocaleString('es-CO')}`, 14, 28);
+  const rows = state.users.map(u => [u.name, u.email, u.phone || '', u.company || '', u.role, u.createdAt]);
+  doc.autoTable({ startY: 35, head: [['Nombre','Email','Teléfono','Empresa','Rol','Registro']], body: rows, theme: 'grid', headStyles: { fillColor: [57,169,0] } });
+  doc.save('usuarios_sena.pdf');
+  showToast('PDF exportado', 'success');
+}
+
+function exportUsersExcel() {
+  const data = state.users.map(u => ({ Nombre: u.name, Email: u.email, Teléfono: u.phone, Empresa: u.company, Rol: u.role, Registro: u.createdAt }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Usuarios');
+  XLSX.writeFile(wb, 'usuarios_sena.xlsx');
+  showToast('Excel exportado', 'success');
+}
+
+function exportProgramsPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16); doc.setTextColor(57,169,0);
+  doc.text('SENA - Oferta Complementaria 2026', 14, 20);
+  doc.setFontSize(10); doc.setTextColor(100);
+  doc.text(`Generado: ${new Date().toLocaleString('es-CO')} - ${state.programs.length} programas`, 14, 28);
+  const rows = state.programs.map(p => {
+    const c = state.categories.find(x => x.id === p.categoryId);
+    const center = state.centers.find(x => x.id === p.centerId);
+    return [p.name.substring(0,40), c?.name || '', center?.code || '', p.duration, p.description.substring(0,50)];
+  });
+  doc.autoTable({ startY: 35, head: [['Programa','Categoría','Centro','Duración','Descripción']], body: rows, theme: 'grid', headStyles: { fillColor: [57,169,0] }, styles: { fontSize: 8 } });
+  doc.save('oferta_complementaria_2026.pdf');
+  showToast('PDF exportado', 'success');
+}
+
+function exportProgramsExcel() {
+  const data = state.programs.map(p => {
+    const c = state.categories.find(x => x.id === p.categoryId);
+    const center = state.centers.find(x => x.id === p.centerId);
+    return { Programa: p.name, Categoría: c?.name, Centro: center?.name, Código: center?.code, Duración: p.duration, Descripción: p.description };
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Programas');
+  XLSX.writeFile(wb, 'oferta_complementaria_2026.xlsx');
+  showToast('Excel exportado', 'success');
+}
+
+// ============ INIT ============
+initFirebase();
+</script>
+</body>
+</html>
