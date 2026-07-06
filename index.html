@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SENA - Sistema de Gestión de Oferta Complementaria Empresarial</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,172 +11,50 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.min.css">
 <style>
   :root { --sena-green: #39A900; --sena-green-dark: #2d8a00; --sena-yellow: #FFCE00; --sena-red: #ED1C24; }
-  * { font-family: 'Inter', sans-serif; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
   body { background: #f3f4f6; margin: 0; }
-  
-  /* Responsive Typography */
-  .text-responsive-xs { font-size: clamp(0.7rem, 2vw, 0.875rem); }
-  .text-responsive-sm { font-size: clamp(0.8rem, 2.5vw, 0.95rem); }
-  .text-responsive-base { font-size: clamp(0.9rem, 3vw, 1.1rem); }
-  .text-responsive-lg { font-size: clamp(1rem, 3.5vw, 1.25rem); }
-  .text-responsive-xl { font-size: clamp(1.25rem, 4vw, 1.5rem); }
-  .text-responsive-2xl { font-size: clamp(1.5rem, 5vw, 2rem); }
-  
   .sena-gradient { background: linear-gradient(135deg, #39A900 0%, #2d8a00 100%); }
-  .sena-btn { 
-    background: #39A900; 
-    color: white; 
-    transition: all 0.3s; 
-    cursor: pointer; 
-    border: none;
-    padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
-    border-radius: 0.5rem;
-    font-weight: 600;
-    font-size: clamp(0.85rem, 2.5vw, 1rem);
-  }
-  .sena-btn:hover { background: #2d8a00; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(57,169,0,0.4); }
-  .sena-btn:active { transform: translateY(0); }
-  
+  .sena-btn { background: #39A900; color: white; transition: all 0.3s; cursor: pointer; border: none; }
+  .sena-btn:hover { background: #2d8a00; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(57,169,0,0.4); }
   .sena-btn-red { background: #ED1C24; color: white; cursor: pointer; border: none; }
-  .sena-btn-red:hover { background: #c41820; transform: translateY(-2px); }
-  
-  .sena-btn-outline { 
-    border: 2px solid #39A900; 
-    color: #39A900; 
-    background: transparent; 
-    cursor: pointer;
-    padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
-    border-radius: 0.5rem;
-    font-weight: 600;
-    font-size: clamp(0.85rem, 2.5vw, 1rem);
-    transition: all 0.3s;
-  }
+  .sena-btn-red:hover { background: #c41820; }
+  .sena-btn-outline { border: 2px solid #39A900; color: #39A900; background: transparent; cursor: pointer; }
   .sena-btn-outline:hover { background: #39A900; color: white; }
-  
   .card-hover { transition: all 0.3s; }
   .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
-  
   .fade-in { animation: fadeIn 0.4s ease-in; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  
   .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); animation: fadeIn 0.2s; }
   .modal-content { animation: modalIn 0.3s ease-out; }
   @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-  
-  .input-sena { 
-    border: 2px solid #e5e7eb; 
-    transition: all 0.2s;
-    padding: clamp(0.6rem, 2.5vw, 0.875rem);
-    border-radius: 0.5rem;
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-  }
+  .input-sena { border: 2px solid #e5e7eb; transition: all 0.2s; }
   .input-sena:focus { border-color: #39A900; box-shadow: 0 0 0 3px rgba(57,169,0,0.1); outline: none; }
-  
-  .badge { 
-    display: inline-flex; 
-    align-items: center; 
-    padding: clamp(0.25rem, 1.5vw, 0.5rem) clamp(0.75rem, 2.5vw, 1rem); 
-    border-radius: 9999px; 
-    font-size: clamp(0.7rem, 2vw, 0.75rem); 
-    font-weight: 600;
-  }
+  .badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
   .badge-green { background: #dcfce7; color: #166534; }
   .badge-yellow { background: #fef9c3; color: #854d0e; }
   .badge-red { background: #fee2e2; color: #991b1b; }
   .badge-blue { background: #dbeafe; color: #1e40af; }
   .badge-gray { background: #f3f4f6; color: #374151; }
-  
   .program-card { border-left: 4px solid #39A900; }
   .program-card.selected { border-left-color: #FFCE00; background: #fef9c3; }
-  
-  .sidebar-link { 
-    transition: all 0.2s; 
-    border-left: 3px solid transparent; 
-    cursor: pointer;
-    padding: clamp(0.75rem, 2.5vw, 1rem);
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-  }
-  .sidebar-link:hover, .sidebar-link.active { 
-    background: rgba(57,169,0,0.1); 
-    border-left-color: #39A900; 
-    color: #39A900; 
-  }
-  
+  .sidebar-link { transition: all 0.2s; border-left: 3px solid transparent; cursor: pointer; text-decoration: none; display: block; }
+  .sidebar-link:hover, .sidebar-link.active { background: rgba(57,169,0,0.1); border-left-color: #39A900; color: #39A900; }
   .toast { animation: toastIn 0.3s ease-out; }
   @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-  
-  .stat-card { 
-    background: white; 
-    border-radius: 12px; 
-    padding: clamp(1rem, 3vw, 1.5rem); 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-  
-  .loading { 
-    display: inline-block; 
-    width: clamp(40px, 10vw, 60px); 
-    height: clamp(40px, 10vw, 60px); 
-    border: 4px solid rgba(57,169,0,.3); 
-    border-radius: 50%; 
-    border-top-color: #39A900; 
-    animation: spin 1s ease-in-out infinite; 
-  }
+  .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  
-  .hero-pattern { 
-    background-image: radial-gradient(circle at 20% 50%, rgba(255,206,0,0.1) 0%, transparent 50%),
-                      radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%); 
-  }
-  
+  .hero-pattern { background-image: radial-gradient(circle at 20% 50%, rgba(255,206,0,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%); }
   .firebase-badge { background: linear-gradient(135deg, #FFA000 0%, #FF6F00 100%); }
-  
-  .btn-action { 
-    padding: clamp(0.4rem, 2vw, 0.6rem) clamp(0.75rem, 2.5vw, 1rem);
-    border-radius: 6px; 
-    font-size: clamp(0.75rem, 2vw, 0.85rem); 
-    font-weight: 600; 
-    cursor: pointer; 
-    border: none; 
-    transition: all 0.2s; 
-    color: white;
-    white-space: nowrap;
-  }
-  .btn-action:hover { transform: scale(1.05); }
-  .btn-edit { background: #3b82f6; }
-  .btn-edit:hover { background: #2563eb; }
-  .btn-delete { background: #ef4444; }
-  .btn-delete:hover { background: #dc2626; }
-  
-  /* Mobile Optimizations */
-  @media (max-width: 640px) {
-    .hide-mobile { display: none; }
-    .stack-mobile { flex-direction: column; }
-    .grid-mobile { grid-template-columns: 1fr !important; }
-    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .table-responsive table { min-width: 600px; }
-  }
-  
-  @media (min-width: 641px) and (max-width: 1024px) {
-    .hide-tablet { display: none; }
-  }
-  
-  /* Touch-friendly elements */
-  @media (hover: none) {
-    .sena-btn:hover, .btn-action:hover, .card-hover:hover { transform: none; }
-    .sena-btn:active, .btn-action:active { transform: scale(0.98); }
-  }
-  
-  /* Username highlight */
-  .username-highlight {
-    background: linear-gradient(135deg, rgba(255,206,0,0.2) 0%, rgba(255,255,255,0.1) 100%);
-    padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
-    border-radius: 0.5rem;
-    border: 2px solid rgba(255,206,0,0.5);
-    font-weight: 700;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
+  .btn-edit { background: #3b82f6; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-edit:hover { background: #2563eb; transform: scale(1.05); }
+  .btn-delete { background: #ef4444; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-delete:hover { background: #dc2626; transform: scale(1.05); }
+  .btn-icon { background: #3b82f6; color: white; padding: 8px; border-radius: 6px; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-icon:hover { background: #2563eb; transform: scale(1.1); }
+  .btn-icon-red { background: #ef4444; }
+  .btn-icon-red:hover { background: #dc2626; }
+  @media (max-width: 768px) { .hide-mobile { display: none; } }
 </style>
 </head>
 <body>
@@ -186,9 +64,9 @@
 
 <div id="loadingOverlay" class="fixed inset-0 bg-white z-[200] flex items-center justify-center">
   <div class="text-center">
-    <div class="loading mx-auto mb-4"></div>
-    <p class="text-gray-600 font-semibold text-responsive-base">Conectando con Firebase...</p>
-    <p class="text-gray-400 text-responsive-sm mt-2">Cargando datos del sistema</p>
+    <div class="loading w-16 h-16 border-4 border-gray-200 border-t-green-600 mx-auto mb-4"></div>
+    <p class="text-gray-600 font-semibold">Conectando con Firebase...</p>
+    <p class="text-gray-400 text-sm mt-2">Cargando datos del sistema</p>
   </div>
 </div>
 
@@ -199,7 +77,7 @@
 
 <script>
 // ============================================
-// FIREBASE CONFIGURATION
+// CONFIGURACIÓN FIREBASE
 // ============================================
 const firebaseConfig = {
   apiKey: "AIzaSyB7TJKVUXnp7SoJXZXqG1YHOjA9G7gZ1Sg",
@@ -214,13 +92,13 @@ let db = null;
 try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
-  console.log('✅ Firebase inicializado');
+  console.log('✅ Firebase inicializado correctamente');
 } catch (error) {
-  console.error('❌ Error Firebase:', error);
+  console.error('❌ Error inicializando Firebase:', error);
 }
 
 // ============================================
-// DATA
+// DATOS POR DEFECTO
 // ============================================
 const LOGO_URL = 'img/Logo_sena_verde.png';
 const HERO_URL = 'https://image.qwenlm.ai/public_source/9376e0d9-769f-4cc9-9631-fd32242d9981/1768f9356-2b84-43a9-be9a-cba92dd3a98a.png';
@@ -252,11 +130,11 @@ const DEFAULT_CATEGORIES = [
   { id: 'cat_tech', name: 'Tecnología e Innovación', icon: '💻', description: 'Programas de inteligencia artificial, ofimática y desarrollo de software' },
   { id: 'cat_econ', name: 'Economía Popular', icon: '🏘️', description: 'Emprendimiento, organización comunitaria y gestión empresarial rural' },
   { id: 'cat_amb', name: 'Ambiental', icon: '🌿', description: 'Gestión ambiental, residuos, energías renovables y agroecología' },
-  { id: 'cat_comp', name: 'Competitividad', icon: '📈', description: 'Marketing, talento humano, finanzas y estrategia empresarial' },
-  { id: 'cat_salud', name: 'Salud y Bienestar', icon: '🧠', description: 'Salud mental, primeros auxilios psicológicos y bienestar integral' },
+  { id: 'cat_comp', name: 'Competitividad', icon: '', description: 'Marketing, talento humano, finanzas y estrategia empresarial' },
+  { id: 'cat_salud', name: 'Salud y Bienestar', icon: '', description: 'Salud mental, primeros auxilios psicológicos y bienestar integral' },
   { id: 'cat_textil', name: 'Confección Textil', icon: '🧵', description: 'Patronaje, corte, confección y mantenimiento de maquinaria textil' },
   { id: 'cat_auto', name: 'Automotriz', icon: '🚗', description: 'Mantenimiento de talleres, motocicletas y sistemas eléctricos' },
-  { id: 'cat_hab', name: 'Habilidades Blandas', icon: '🤝', description: 'Liderazgo, comunicación, trabajo en equipo y ética laboral' },
+  { id: 'cat_hab', name: 'Habilidades Blandas', icon: '', description: 'Liderazgo, comunicación, trabajo en equipo y ética laboral' },
   { id: 'cat_foto', name: 'Fotografía y Diseño Gráfico', icon: '📷', description: 'Fotografía digital, productos, redes sociales e Indesign' },
   { id: 'cat_elec', name: 'Electricidad – Electrónica - Energía', icon: '⚡', description: 'Instalaciones eléctricas, electrónica, robótica y eficiencia energética' },
   { id: 'cat_tur', name: 'Turismo – Comunidad – Agroecología', icon: '🌄', description: 'Turismo rural, comunitario y desarrollo local sostenible' },
@@ -394,7 +272,7 @@ const DEFAULT_AUDIT = [
 ];
 
 // ============================================
-// STATE
+// ESTADO GLOBAL
 // ============================================
 let state = {
   currentUser: null,
@@ -407,6 +285,7 @@ let state = {
   audit: [],
   selectedPrograms: [],
   searchQuery: '',
+  userSearchQuery: '',
   filterCategory: '',
   filterCenter: '',
   filterStatus: '',
@@ -415,11 +294,16 @@ let state = {
 };
 
 // ============================================
-// UTILITIES
+// UTILIDADES
 // ============================================
 function escapeHtml(text) {
   if (text === null || text === undefined) return '';
-  return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function generateId() {
@@ -434,7 +318,11 @@ function showToast(message, type = 'success') {
   toast.className = `toast ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px]`;
   toast.innerHTML = `<span class="text-xl font-bold">${icons[type]}</span><span class="font-medium">${escapeHtml(message)}</span>`;
   container.appendChild(toast);
-  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 // ============================================
@@ -443,17 +331,23 @@ function showToast(message, type = 'success') {
 async function initFirebase() {
   try {
     if (!db) throw new Error('Firebase no inicializado');
+    
     const [usersSnap, programsSnap, categoriesSnap, centersSnap, requestsSnap, auditSnap] = await Promise.all([
-      db.collection('users').get(), db.collection('programs').get(), db.collection('categories').get(),
-      db.collection('centers').get(), db.collection('requests').get(), db.collection('audit').get()
+      db.collection('users').get(),
+      db.collection('programs').get(),
+      db.collection('categories').get(),
+      db.collection('centers').get(),
+      db.collection('requests').get(),
+      db.collection('audit').get()
     ]);
 
     if (usersSnap.empty || programsSnap.empty || categoriesSnap.empty || centersSnap.empty) {
-      console.log('🌱 Sembrando datos...');
+      console.log('🌱 Sembrando datos iniciales...');
       await seedInitialData();
       const [u2, p2, c2, ce2, r2, a2] = await Promise.all([
-        db.collection('users').get(), db.collection('programs').get(), db.collection('categories').get(),
-        db.collection('centers').get(), db.collection('requests').get(), db.collection('audit').get()
+        db.collection('users').get(), db.collection('programs').get(),
+        db.collection('categories').get(), db.collection('centers').get(),
+        db.collection('requests').get(), db.collection('audit').get()
       ]);
       state.users = u2.docs.map(d => ({ id: d.id, ...d.data() }));
       state.programs = p2.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -478,7 +372,7 @@ async function initFirebase() {
   } catch (error) {
     console.error('❌ Error Firebase:', error);
     state.firebaseError = error.message;
-    showToast('Error Firebase. Usando datos locales.', 'error');
+    showToast('Error Firebase: ' + error.message + '. Usando datos locales.', 'error');
     state.users = JSON.parse(JSON.stringify(DEFAULT_USERS));
     state.programs = JSON.parse(JSON.stringify(DEFAULT_PROGRAMS));
     state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
@@ -500,36 +394,55 @@ async function seedInitialData() {
   DEFAULT_REQUESTS.forEach(r => batch.set(db.collection('requests').doc(r.id), r));
   DEFAULT_AUDIT.forEach(a => batch.set(db.collection('audit').doc(a.id), a));
   await batch.commit();
+  console.log('✅ Datos sembrados en Firebase');
 }
 
 async function saveToFirebase(collection, data, id = null) {
   try {
     if (!db) return id;
-    if (id) await db.collection(collection).doc(id).set(data);
-    else { const ref = await db.collection(collection).add(data); return ref.id; }
+    if (id) {
+      await db.collection(collection).doc(id).set(data);
+    } else {
+      const ref = await db.collection(collection).add(data);
+      return ref.id;
+    }
     return id;
-  } catch (e) { console.error('Error guardando:', e); return id; }
+  } catch (e) {
+    console.error('Error guardando en', collection, e);
+    return id;
+  }
 }
 
 async function updateFirebase(collection, id, data) {
-  try { if (db) await db.collection(collection).doc(id).update(data); }
-  catch (e) { console.error('Error actualizando:', e); }
+  try {
+    if (db) await db.collection(collection).doc(id).update(data);
+  } catch (e) {
+    console.error('Error actualizando en', collection, e);
+  }
 }
 
 async function deleteFromFirebase(collection, id) {
-  try { if (db) await db.collection(collection).doc(id).delete(); }
-  catch (e) { console.error('Error eliminando:', e); }
+  try {
+    if (db) await db.collection(collection).doc(id).delete();
+  } catch (e) {
+    console.error('Error eliminando de', collection, e);
+  }
 }
 
 async function addAudit(action) {
   if (!state.currentUser) return;
-  const auditData = { id: generateId(), userId: state.currentUser.id, action: action, timestamp: new Date().toLocaleString('es-CO') };
+  const auditData = {
+    id: generateId(),
+    userId: state.currentUser.id,
+    action: action,
+    timestamp: new Date().toLocaleString('es-CO')
+  };
   state.audit.push(auditData);
   await saveToFirebase('audit', auditData, auditData.id);
 }
 
 // ============================================
-// AUTH
+// AUTENTICACIÓN
 // ============================================
 async function login(email, password) {
   const user = state.users.find(u => u.email === email && u.password === password);
@@ -549,10 +462,15 @@ async function register(data) {
     showToast('El correo ya está registrado', 'error');
     return false;
   }
-  const user = { id: generateId(), ...data, role: 'empresario', createdAt: new Date().toISOString().split('T')[0] };
+  const user = {
+    id: generateId(),
+    ...data,
+    role: 'empresario',
+    createdAt: new Date().toISOString().split('T')[0]
+  };
   state.users.push(user);
   await saveToFirebase('users', user, user.id);
-  await addAudit('Registro: ' + data.email);
+  await addAudit('Registro de nuevo empresario: ' + data.email);
   showToast('Registro exitoso', 'success');
   state.currentUser = user;
   navigate('catalogo');
@@ -573,7 +491,7 @@ function navigate(view) {
 }
 
 // ============================================
-// RENDER
+// RENDER PRINCIPAL
 // ============================================
 function render() {
   const app = document.getElementById('app');
@@ -584,14 +502,37 @@ function render() {
   } else {
     const role = state.currentUser.role;
     if (role === 'empresario') {
-      const views = { catalogo: renderCatalogo, solicitud: renderSolicitud, historial: renderHistorial, perfil: renderPerfil };
+      const views = {
+        catalogo: renderCatalogo,
+        solicitud: renderSolicitud,
+        historial: renderHistorial,
+        perfil: renderPerfil
+      };
       app.innerHTML = renderEmpresarioLayout((views[state.currentView] || renderCatalogo)());
     } else if (role === 'admin') {
-      const views = { adminPanel: renderAdminDashboard, adminRequests: renderAdminRequests, adminReports: renderAdminReports, adminAudit: renderAdminAudit };
+      const views = {
+        adminPanel: renderAdminDashboard,
+        adminRequests: renderAdminRequests,
+        adminReports: renderAdminReports,
+        adminAudit: renderAdminAudit
+      };
       app.innerHTML = renderAdminLayout((views[state.currentView] || renderAdminDashboard)());
     } else if (role === 'superadmin') {
-      const views = { superPanel: renderSuperDashboard, superUsers: renderSuperUsers, superPrograms: renderSuperPrograms, superCategories: renderSuperCategories, superCenters: renderSuperCenters, superAudit: renderAdminAudit };
-      app.innerHTML = renderSuperLayout((views[state.currentView] || renderSuperDashboard)());
+      const views = {
+        superPanel: renderSuperDashboard,
+        superUsers: renderSuperUsers,
+        superPrograms: renderSuperPrograms,
+        superCategories: renderSuperCategories,
+        superCenters: renderSuperCenters,
+        superAudit: renderAdminAudit
+      };
+      try {
+        const viewFn = views[state.currentView] || renderSuperDashboard;
+        app.innerHTML = renderSuperLayout(viewFn());
+      } catch (err) {
+        console.error('❌ Error renderizando vista superadmin:', state.currentView, err);
+        app.innerHTML = renderSuperLayout(`<div class="bg-red-50 border border-red-200 rounded-xl p-6"><h3 class="font-bold text-red-700 mb-2">Error al cargar la vista</h3><p class="text-red-600 text-sm">${escapeHtml(err.message)}</p><button data-nav="superPanel" class="mt-4 sena-btn px-4 py-2 rounded-lg font-semibold cursor-pointer">← Volver al Dashboard</button></div>`);
+      }
     }
   }
 }
@@ -611,8 +552,8 @@ function renderLogin() {
             <p class="text-green-100 text-lg mb-6">Formación para el trabajo y el desarrollo humano</p>
             <div class="space-y-3">
               <div class="flex items-center gap-3"><span class="bg-yellow-400 text-green-900 rounded-full w-8 h-8 flex items-center justify-center font-bold">✓</span><span>${state.programs.length} programas disponibles</span></div>
-              <div class="flex items-center gap-3"><span class="bg-yellow-400 text-green-900 rounded-full w-8 h-8 flex items-center justify-center font-bold">✓</span><span>${state.categories.length} categorías</span></div>
-              <div class="flex items-center gap-3"><span class="bg-yellow-400 text-green-900 rounded-full w-8 h-8 flex items-center justify-center font-bold">✓</span><span>${state.centers.length} centros</span></div>
+              <div class="flex items-center gap-3"><span class="bg-yellow-400 text-green-900 rounded-full w-8 h-8 flex items-center justify-center font-bold">✓</span><span>${state.categories.length} categorías temáticas</span></div>
+              <div class="flex items-center gap-3"><span class="bg-yellow-400 text-green-900 rounded-full w-8 h-8 flex items-center justify-center font-bold">✓</span><span>${state.centers.length} centros de formación</span></div>
             </div>
           </div>
           <div class="relative z-10 mt-8">
@@ -620,14 +561,14 @@ function renderLogin() {
           </div>
           <div class="relative z-10 mt-4">
             <div class="firebase-badge text-white px-4 py-2 rounded-lg text-sm font-semibold inline-flex items-center gap-2">
-              <span> <img src="img/Logo_Conexión_SF.png" alt="Logo Voka" style="width: 20px; height: 20px;"> Powered by Voka
-              </span>
+              <span>🔥</span> Powered by Firebase
             </div>
           </div>
         </div>
         <div class="md:w-1/2 p-8 md:p-12">
           <h2 class="text-2xl font-bold text-gray-800 mb-2">Iniciar Sesión</h2>
           <p class="text-gray-500 mb-6">Ingrese sus credenciales</p>
+          ${state.firebaseError ? `<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">⚠️ ${escapeHtml(state.firebaseError)}</div>` : ''}
           <form id="loginForm">
             <div class="mb-4">
               <label class="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico</label>
@@ -660,10 +601,16 @@ function renderRegister() {
   return `
     <div class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);">
       <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-8 fade-in">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Registro de Empresario</h2>
+        <div class="flex items-center gap-4 mb-6">
+          <img src="${LOGO_URL}" alt="SENA" class="h-12 bg-white rounded-lg p-1 shadow">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800">Registro de Empresario</h2>
+            <p class="text-gray-500 text-sm">Complete sus datos para crear una cuenta</p>
+          </div>
+        </div>
         <form id="registerForm">
           <div class="grid md:grid-cols-2 gap-4">
-            <div class="md:col-span-2"><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="regName" required class="input-sena w-full px-4 py-3 rounded-lg"></div>
+            <div class="md:col-span-2"><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre completo *</label><input id="regName" required class="input-sena w-full px-4 py-3 rounded-lg"></div>
             <div><label class="block text-sm font-semibold text-gray-700 mb-1">Correo *</label><input id="regEmail" type="email" required class="input-sena w-full px-4 py-3 rounded-lg"></div>
             <div><label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono *</label><input id="regPhone" required class="input-sena w-full px-4 py-3 rounded-lg"></div>
             <div><label class="block text-sm font-semibold text-gray-700 mb-1">Empresa *</label><input id="regCompany" required class="input-sena w-full px-4 py-3 rounded-lg"></div>
@@ -682,12 +629,16 @@ function renderRecover() {
   return `
     <div class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);">
       <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 fade-in">
-        <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Recuperar Contraseña</h2>
+        <img src="${LOGO_URL}" alt="SENA" class="h-12 mx-auto mb-4">
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Recuperar Contraseña</h2>
         <form id="recoverForm">
-          <input id="recoverEmail" type="email" required class="input-sena w-full px-4 py-3 rounded-lg mb-4" placeholder="Correo electrónico">
-          <button type="submit" class="sena-btn w-full font-semibold py-3 rounded-lg">Enviar enlace</button>
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico</label>
+            <input id="recoverEmail" type="email" required class="input-sena w-full px-4 py-3 rounded-lg">
+          </div>
+          <button type="submit" class="sena-btn w-full font-semibold py-3 rounded-lg mb-3">Enviar enlace</button>
         </form>
-        <p class="text-center text-sm mt-4"><a data-nav="login" class="text-green-600 font-semibold cursor-pointer">← Volver</a></p>
+        <p class="text-center text-sm"><a data-nav="login" class="text-green-600 font-semibold cursor-pointer">← Volver</a></p>
       </div>
     </div>`;
 }
@@ -706,14 +657,12 @@ function renderEmpresarioLayout(content) {
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <img src="${LOGO_URL}" class="h-10 bg-white rounded-lg p-1">
-            <div class="hide-mobile"><h1 class="font-bold text-responsive-lg">Oferta Complementaria 2026</h1></div>
+            <div class="hide-mobile"><h1 class="font-bold text-lg">Oferta Complementaria 2026</h1><p class="text-xs text-green-100">Portal del Empresario</p></div>
           </div>
           <div class="flex items-center gap-3">
-            <div class="username-highlight hide-mobile">
-              <div class="text-responsive-xs opacity-90">Usuario</div>
-              <div class="text-responsive-base">${escapeHtml(user.name)}</div>
-            </div>
-            <button data-action="logout" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium">Salir</button>
+            <div class="text-right hide-mobile"><p class="font-semibold text-sm">${escapeHtml(user.name)}</p><p class="text-xs text-green-100">${escapeHtml(user.company)}</p></div>
+            <div class="w-10 h-10 rounded-full bg-yellow-400 text-green-900 flex items-center justify-center font-bold">${user.name.charAt(0)}</div>
+            <button data-action="logout" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer">Salir</button>
           </div>
         </div>
       </header>
@@ -742,14 +691,12 @@ function renderAdminLayout(content) {
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <img src="${LOGO_URL}" class="h-10 bg-white rounded-lg p-1">
-            <div class="hide-mobile"><h1 class="font-bold text-responsive-lg">Panel Administración</h1></div>
+            <div class="hide-mobile"><h1 class="font-bold text-lg">Panel Administración</h1><p class="text-xs text-gray-400">Gestión de Solicitudes</p></div>
           </div>
           <div class="flex items-center gap-3">
-            <div class="username-highlight hide-mobile">
-              <div class="text-responsive-xs opacity-90">Administrador</div>
-              <div class="text-responsive-base">${escapeHtml(user.name)}</div>
-            </div>
-            <button data-action="logout" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium">Salir</button>
+            <div class="text-right hide-mobile"><p class="font-semibold text-sm">${escapeHtml(user.name)}</p><span class="badge badge-blue text-xs">Administrador</span></div>
+            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold">${user.name.charAt(0)}</div>
+            <button data-action="logout" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer">Salir</button>
           </div>
         </div>
       </header>
@@ -776,18 +723,16 @@ function renderSuperLayout(content) {
   ];
   return `
     <div class="min-h-screen bg-gray-50">
-      <header class="bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg">
+      <header class="bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <img src="${LOGO_URL}" class="h-10 bg-white rounded-lg p-1">
-            <div class="hide-mobile"><h1 class="font-bold text-responsive-lg">Super Administrador</h1></div>
+            <div class="hide-mobile"><h1 class="font-bold text-lg">Super Administrador</h1><p class="text-xs text-red-200">Control total del sistema</p></div>
           </div>
           <div class="flex items-center gap-3">
-            <div class="username-highlight hide-mobile">
-              <div class="text-responsive-xs opacity-90">Super Admin</div>
-              <div class="text-responsive-base">${escapeHtml(user.name)}</div>
-            </div>
-            <button data-action="logout" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium">Salir</button>
+            <div class="text-right hide-mobile"><p class="font-semibold text-sm">${escapeHtml(user.name)}</p><span class="badge badge-red text-xs">Super Admin</span></div>
+            <div class="w-10 h-10 rounded-full bg-yellow-400 text-red-900 flex items-center justify-center font-bold">${user.name.charAt(0)}</div>
+            <button data-action="logout" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer">Salir</button>
           </div>
         </div>
       </header>
@@ -803,11 +748,11 @@ function renderSuperLayout(content) {
 }
 
 // ============================================
-// VIEWS
+// VISTAS EMPRESARIO
 // ============================================
 function renderCatalogo() {
   const filtered = state.programs.filter(p => {
-    const s = !state.searchQuery || p.name.toLowerCase().includes(state.searchQuery.toLowerCase());
+    const s = !state.searchQuery || p.name.toLowerCase().includes(state.searchQuery.toLowerCase()) || p.description.toLowerCase().includes(state.searchQuery.toLowerCase());
     const c = !state.filterCategory || p.categoryId === state.filterCategory;
     const ce = !state.filterCenter || p.centerId === state.filterCenter;
     return s && c && ce;
@@ -816,9 +761,9 @@ function renderCatalogo() {
     <div>
       <div class="bg-white rounded-xl shadow p-6 mb-6">
         <h2 class="text-2xl font-bold text-gray-800 mb-1">Catálogo de Programas</h2>
-        <p class="text-gray-500 text-sm mb-4">${state.programs.length} programas</p>
+        <p class="text-gray-500 text-sm mb-4">${state.programs.length} programas en ${state.categories.length} categorías</p>
         <div class="flex flex-col md:flex-row gap-3">
-          <input id="searchInput" value="${escapeHtml(state.searchQuery)}" class="input-sena flex-1 px-4 py-3 rounded-lg" placeholder="🔍 Buscar...">
+          <input id="searchInput" value="${escapeHtml(state.searchQuery)}" class="input-sena flex-1 px-4 py-3 rounded-lg" placeholder=" Buscar...">
           <select id="filterCategory" class="input-sena px-4 py-3 rounded-lg md:w-64">
             <option value="">Todas las categorías</option>
             ${state.categories.map(c => `<option value="${c.id}" ${state.filterCategory === c.id ? 'selected' : ''}>${c.icon} ${escapeHtml(c.name)}</option>`).join('')}
@@ -829,15 +774,16 @@ function renderCatalogo() {
           </select>
         </div>
       </div>
-      ${state.selectedPrograms.length > 0 ? `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mb-6"><div class="flex items-center justify-between"><div><p class="font-semibold text-yellow-800">${state.selectedPrograms.length} seleccionado(s)</p></div><button data-nav="solicitud" class="sena-btn px-6 py-2 rounded-lg font-semibold">Crear Solicitud →</button></div></div>` : ''}
-      <div class="grid grid-mobile md:grid-cols-2 lg:grid-cols-3 gap-4">
+      ${state.selectedPrograms.length > 0 ? `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mb-6"><div class="flex items-center justify-between"><div><p class="font-semibold text-yellow-800">${state.selectedPrograms.length} seleccionado(s)</p></div><button data-nav="solicitud" class="sena-btn px-6 py-2 rounded-lg font-semibold cursor-pointer">Crear Solicitud →</button></div></div>` : ''}
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         ${filtered.map(p => {
           const cat = state.categories.find(c => c.id === p.categoryId);
           const center = state.centers.find(c => c.id === p.centerId);
           const selected = state.selectedPrograms.includes(p.id);
-          return `<div data-action="toggle-program" data-id="${p.id}" class="program-card ${selected ? 'selected' : ''} bg-white rounded-xl shadow p-5 card-hover cursor-pointer"><div class="flex items-start justify-between mb-3"><span class="text-3xl">${cat?.icon || '📚'}</span>${selected ? '<span class="badge badge-yellow">✓ Seleccionado</span>' : '<span class="badge badge-gray">Disponible</span>'}</div><h3 class="font-bold text-gray-800 mb-1 text-responsive-base">${escapeHtml(p.name)}</h3><p class="text-xs text-green-600 font-semibold mb-1">${escapeHtml(cat?.name || '')}</p><p class="text-xs text-blue-600 mb-2">🏢 ${escapeHtml(center?.code || '')}</p><p class="text-sm text-gray-600 mb-3 line-clamp-3">${escapeHtml(p.description)}</p><div class="flex items-center justify-between text-xs"><span class="text-gray-500">⏱️ ${escapeHtml(p.duration)}</span></div></div>`;
+          return `<div data-action="toggle-program" data-id="${p.id}" class="program-card ${selected ? 'selected' : ''} bg-white rounded-xl shadow p-5 card-hover cursor-pointer"><div class="flex items-start justify-between mb-3"><span class="text-3xl">${cat?.icon || '📚'}</span>${selected ? '<span class="badge badge-yellow">✓ Seleccionado</span>' : '<span class="badge badge-gray">Disponible</span>'}</div><h3 class="font-bold text-gray-800 mb-1">${escapeHtml(p.name)}</h3><p class="text-xs text-green-600 font-semibold mb-1">${escapeHtml(cat?.name || '')}</p><p class="text-xs text-blue-600 mb-2"> ${escapeHtml(center?.code || '')} - ${escapeHtml(center?.name || '')}</p><p class="text-sm text-gray-600 mb-3 line-clamp-3">${escapeHtml(p.description)}</p><div class="flex items-center justify-between text-xs"><span class="text-gray-500">⏱️ ${escapeHtml(p.duration)}</span><button class="${selected ? 'sena-btn-red' : 'sena-btn'} text-white px-3 py-1 rounded text-xs font-semibold cursor-pointer">${selected ? 'Quitar' : 'Seleccionar'}</button></div></div>`;
         }).join('')}
       </div>
+      ${filtered.length === 0 ? '<div class="text-center py-12 text-gray-500">No se encontraron programas</div>' : ''}
     </div>`;
 }
 
@@ -845,21 +791,25 @@ function renderSolicitud() {
   const selectedPrograms = state.programs.filter(p => state.selectedPrograms.includes(p.id));
   return `
     <div class="bg-white rounded-xl shadow p-6">
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">Nueva Solicitud</h2>
-      ${selectedPrograms.length === 0 ? `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg"><p class="font-semibold text-yellow-800 mb-2">⚠️ No ha seleccionado programas</p><button data-nav="catalogo" class="sena-btn px-6 py-2 rounded-lg font-semibold">Ir al Catálogo</button></div>` : `
-        <form id="requestForm">
-          <div class="mb-6">
-            <h3 class="font-semibold text-gray-700 mb-3">Programas seleccionados (${selectedPrograms.length}):</h3>
-            <div class="space-y-2">
-              ${selectedPrograms.map(p => `<div class="bg-green-50 border border-green-200 rounded-lg px-4 py-3"><span class="font-semibold text-green-800">${escapeHtml(p.name)}</span> <span class="text-xs text-green-600">⏱️ ${escapeHtml(p.duration)}</span></div>`).join('')}
-            </div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Nueva Solicitud</h2>
+      <p class="text-gray-500 text-sm mb-6">Complete los datos para enviar su solicitud</p>
+      ${selectedPrograms.length === 0 ? `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg mb-6"><p class="font-semibold text-yellow-800 mb-2">⚠️ No ha seleccionado programas</p><button data-nav="catalogo" class="sena-btn px-6 py-2 rounded-lg font-semibold cursor-pointer">Ir al Catálogo</button></div>` : `
+        <div class="mb-6">
+          <h3 class="font-semibold text-gray-700 mb-3">Programas seleccionados:</h3>
+          <div class="space-y-2">
+            ${selectedPrograms.map(p => { const cat = state.categories.find(c => c.id === p.categoryId); const center = state.centers.find(c => c.id === p.centerId); return `<div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3"><div><span class="font-semibold text-green-800">${escapeHtml(p.name)}</span><div class="text-xs text-green-600">${escapeHtml(cat?.name || '')} · 🏢 ${escapeHtml(center?.code || '')} · ⏱️ ${escapeHtml(p.duration)}</div></div><button data-action="toggle-program" data-id="${p.id}" class="text-red-500 hover:text-red-700 text-sm font-semibold cursor-pointer">✕</button></div>`; }).join('')}
           </div>
-          <div class="grid grid-mobile md:grid-cols-2 gap-4 mb-4">
+        </div>
+        <form id="requestForm">
+          <div class="grid md:grid-cols-2 gap-4 mb-4">
             <div><label class="block text-sm font-semibold text-gray-700 mb-2">Rango de aprendices *</label><select id="reqApprenticeRange" required class="input-sena w-full px-4 py-3 rounded-lg"><option value="">Seleccione...</option><option value="0-10">0 - 10</option><option value="11-20">11 - 20</option><option value="21-30">21 - 30</option><option value=">30">Más de 30</option></select></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-2">Horario *</label><select id="reqSchedule" required class="input-sena w-full px-4 py-3 rounded-lg"><option value="">Seleccione...</option><option value="mañana">Mañana</option><option value="tarde">Tarde</option><option value="noche">Noche</option></select></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-2">Horario preferido *</label><select id="reqSchedule" required class="input-sena w-full px-4 py-3 rounded-lg"><option value="">Seleccione...</option><option value="mañana">Mañana</option><option value="tarde">Tarde</option><option value="noche">Noche</option></select></div>
           </div>
           <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-2">Observaciones</label><textarea id="reqObservations" rows="4" class="input-sena w-full px-4 py-3 rounded-lg"></textarea></div>
-          <button type="submit" class="sena-btn w-full font-semibold py-3 rounded-lg">Enviar Solicitud</button>
+          <div class="flex gap-3">
+            <button type="button" data-action="clear-selection" class="flex-1 sena-btn-outline font-semibold py-3 rounded-lg cursor-pointer">Cancelar</button>
+            <button type="submit" class="flex-1 sena-btn font-semibold py-3 rounded-lg cursor-pointer">Enviar Solicitud</button>
+          </div>
         </form>
       `}
     </div>`;
@@ -869,18 +819,18 @@ function renderHistorial() {
   const userRequests = state.requests.filter(r => r.userId === state.currentUser.id).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
   return `
     <div class="bg-white rounded-xl shadow p-6">
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">Historial de Solicitudes</h2>
-      ${userRequests.length === 0 ? `<div class="text-center py-12"><div class="text-6xl mb-4">📋</div><p class="text-gray-500">No tiene solicitudes</p></div>` : `
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Historial de Solicitudes</h2>
+      <p class="text-gray-500 text-sm mb-6">Consulte el estado de sus solicitudes</p>
+      ${userRequests.length === 0 ? `<div class="text-center py-12"><div class="text-6xl mb-4">📋</div><p class="text-gray-500 mb-4">No tiene solicitudes</p><button data-nav="catalogo" class="sena-btn px-6 py-2 rounded-lg font-semibold cursor-pointer">Explorar</button></div>` : `
         <div class="space-y-4">
           ${userRequests.map(r => {
             const statusColors = { pendiente: 'badge-yellow', aprobada: 'badge-green', rechazada: 'badge-red', en_proceso: 'badge-blue' };
             const statusLabels = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada', en_proceso: 'En proceso' };
             const programs = r.programs.map(pid => state.programs.find(p => p.id === pid)).filter(Boolean);
-            return `<div class="border border-gray-200 rounded-xl p-5"><div class="flex justify-between mb-3"><div><p class="text-xs text-gray-500">#${r.id.slice(-6).toUpperCase()} · ${r.createdAt}</p><h3 class="font-bold text-gray-800">${programs.map(p => escapeHtml(p.name)).join(', ')}</h3></div><span class="badge ${statusColors[r.status]}">${statusLabels[r.status]}</span></div></div>`;
+            return `<div class="border border-gray-200 rounded-xl p-5 hover:shadow-md transition"><div class="flex flex-col md:flex-row md:items-center justify-between mb-3 gap-2"><div><p class="text-xs text-gray-500">#${r.id.slice(-6).toUpperCase()} · ${r.createdAt}</p><h3 class="font-bold text-gray-800">${programs.map(p => escapeHtml(p.name)).join(', ')}</h3></div><span class="badge ${statusColors[r.status]}">${statusLabels[r.status]}</span></div><div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm"><div><span class="text-gray-500">Aprendices:</span> <b>${escapeHtml(r.apprenticeRange)}</b></div><div><span class="text-gray-500">Horario:</span> <b class="capitalize">${escapeHtml(r.schedule)}</b></div><div><span class="text-gray-500">Programas:</span> <b>${programs.length}</b></div><div><span class="text-gray-500">Fecha:</span> <b>${r.createdAt}</b></div></div>${r.observations ? `<div class="mt-3 pt-3 border-t text-sm"><span class="text-gray-500">Observaciones:</span> <p class="text-gray-700 mt-1">${escapeHtml(r.observations)}</p></div>` : ''}</div>`;
           }).join('')}
         </div>
-      `}
-    </div>`;
+      `}`;
 }
 
 function renderPerfil() {
@@ -888,65 +838,86 @@ function renderPerfil() {
   return `
     <div class="bg-white rounded-xl shadow p-6">
       <h2 class="text-2xl font-bold text-gray-800 mb-6">Mi Perfil</h2>
+      <div class="flex items-center gap-4 mb-6 pb-6 border-b">
+        <div class="w-20 h-20 rounded-full sena-gradient text-white flex items-center justify-center text-3xl font-bold">${user.name.charAt(0)}</div>
+        <div><h3 class="text-xl font-bold text-gray-800">${escapeHtml(user.name)}</h3><p class="text-gray-500">${escapeHtml(user.email)}</p><span class="badge badge-green mt-1">Empresario</span></div>
+      </div>
       <form id="profileForm">
-        <div class="grid grid-mobile md:grid-cols-2 gap-4">
+        <div class="grid md:grid-cols-2 gap-4">
           <div><label class="block text-sm font-semibold text-gray-700 mb-2">Nombre</label><input id="profName" value="${escapeHtml(user.name)}" class="input-sena w-full px-4 py-3 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-2">Correo</label><input value="${escapeHtml(user.email)}" disabled class="bg-gray-100 w-full px-4 py-3 rounded-lg text-gray-500"></div>
           <div><label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono</label><input id="profPhone" value="${escapeHtml(user.phone || '')}" class="input-sena w-full px-4 py-3 rounded-lg"></div>
           <div><label class="block text-sm font-semibold text-gray-700 mb-2">Empresa</label><input id="profCompany" value="${escapeHtml(user.company || '')}" class="input-sena w-full px-4 py-3 rounded-lg"></div>
         </div>
-        <button type="submit" class="sena-btn font-semibold py-3 px-8 rounded-lg mt-6">Guardar cambios</button>
+        <button type="submit" class="sena-btn font-semibold py-3 px-8 rounded-lg mt-6 cursor-pointer">Guardar cambios</button>
       </form>
     </div>`;
 }
 
 // ============================================
-// ADMIN VIEWS
+// VISTAS ADMIN
 // ============================================
 function renderAdminDashboard() {
   const total = state.requests.length;
   const pendientes = state.requests.filter(r => r.status === 'pendiente').length;
   const aprobadas = state.requests.filter(r => r.status === 'aprobada').length;
+  const enProceso = state.requests.filter(r => r.status === 'en_proceso').length;
   return `
     <div>
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">Dashboard</h2>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Dashboard</h2>
+      <p class="text-gray-500 text-sm mb-6">Resumen general</p>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div class="stat-card border-l-4 border-blue-500"><p class="text-gray-500 text-sm">Total</p><p class="text-3xl font-bold">${total}</p></div>
         <div class="stat-card border-l-4 border-yellow-500"><p class="text-gray-500 text-sm">Pendientes</p><p class="text-3xl font-bold text-yellow-600">${pendientes}</p></div>
         <div class="stat-card border-l-4 border-green-500"><p class="text-gray-500 text-sm">Aprobadas</p><p class="text-3xl font-bold text-green-600">${aprobadas}</p></div>
+        <div class="stat-card border-l-4 border-purple-500"><p class="text-gray-500 text-sm">En Proceso</p><p class="text-3xl font-bold text-purple-600">${enProceso}</p></div>
+      </div>
+      <div class="bg-white rounded-xl shadow p-6">
+        <h3 class="font-bold text-gray-800 mb-4">Solicitudes Recientes</h3>
+        <div class="space-y-3">
+          ${state.requests.slice(-5).reverse().map(r => { const user = state.users.find(u => u.id === r.userId); const statusColors = { pendiente: 'badge-yellow', aprobada: 'badge-green', rechazada: 'badge-red', en_proceso: 'badge-blue' }; const statusLabels = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada', en_proceso: 'En proceso' }; return `<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><div><p class="font-semibold text-sm">${escapeHtml(user?.name || 'Desconocido')}</p><p class="text-xs text-gray-500">${escapeHtml(user?.company || '')} · ${r.createdAt}</p></div><span class="badge ${statusColors[r.status]}">${statusLabels[r.status]}</span></div>`; }).join('')}
+        </div>
       </div>
     </div>`;
 }
 
 function renderAdminRequests() {
-  const filtered = state.requests.filter(r => !state.filterStatus || r.status === state.filterStatus);
+  const filtered = state.requests.filter(r => !state.filterStatus || r.status === state.filterStatus).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
   return `
     <div>
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">Gestión de Solicitudes</h2>
-      <select id="filterStatus" class="input-sena px-4 py-2 rounded-lg mb-4">
-        <option value="">Todos los estados</option>
-        <option value="pendiente" ${state.filterStatus === 'pendiente' ? 'selected' : ''}>Pendientes</option>
-        <option value="aprobada" ${state.filterStatus === 'aprobada' ? 'selected' : ''}>Aprobadas</option>
-        <option value="en_proceso" ${state.filterStatus === 'en_proceso' ? 'selected' : ''}>En proceso</option>
-        <option value="rechazada" ${state.filterStatus === 'rechazada' ? 'selected' : ''}>Rechazadas</option>
-      </select>
-      <div class="space-y-4">
-        ${filtered.map(r => {
-          const user = state.users.find(u => u.id === r.userId);
-          const statusColors = { pendiente: 'badge-yellow', aprobada: 'badge-green', rechazada: 'badge-red', en_proceso: 'badge-blue' };
-          const statusLabels = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada', en_proceso: 'En proceso' };
-          return `<div class="bg-white rounded-xl shadow p-5"><div class="flex justify-between mb-3"><div><p class="text-xs text-gray-500">#${r.id.slice(-6).toUpperCase()}</p><h3 class="font-bold text-gray-800">${escapeHtml(user?.name || '')}</h3></div><span class="badge ${statusColors[r.status]}">${statusLabels[r.status]}</span></div><div class="flex gap-2"><button data-action="update-status" data-id="${r.id}" data-status="aprobada" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">✓ Aprobar</button><button data-action="update-status" data-id="${r.id}" data-status="rechazada" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">✕ Rechazar</button></div></div>`;
-        }).join('')}
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-3">
+        <div><h2 class="text-2xl font-bold text-gray-800">Gestión de Solicitudes</h2><p class="text-gray-500 text-sm">Administre las solicitudes</p></div>
+        <select id="filterStatus" class="input-sena px-4 py-2 rounded-lg md:w-48">
+          <option value="">Todos los estados</option>
+          <option value="pendiente" ${state.filterStatus === 'pendiente' ? 'selected' : ''}>Pendientes</option>
+          <option value="aprobada" ${state.filterStatus === 'aprobada' ? 'selected' : ''}>Aprobadas</option>
+          <option value="en_proceso" ${state.filterStatus === 'en_proceso' ? 'selected' : ''}>En proceso</option>
+          <option value="rechazada" ${state.filterStatus === 'rechazada' ? 'selected' : ''}>Rechazadas</option>
+        </select>
       </div>
-    </div>`;
+      ${filtered.length === 0 ? '<div class="bg-white rounded-xl shadow p-12 text-center text-gray-500">No hay solicitudes</div>' : `
+        <div class="space-y-4">
+          ${filtered.map(r => {
+            const user = state.users.find(u => u.id === r.userId);
+            const programs = r.programs.map(pid => state.programs.find(p => p.id === pid)).filter(Boolean);
+            const statusColors = { pendiente: 'badge-yellow', aprobada: 'badge-green', rechazada: 'badge-red', en_proceso: 'badge-blue' };
+            const statusLabels = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada', en_proceso: 'En proceso' };
+            return `<div class="bg-white rounded-xl shadow p-5"><div class="flex flex-col md:flex-row md:items-center justify-between mb-3 gap-2"><div><p class="text-xs text-gray-500">#${r.id.slice(-6).toUpperCase()} · ${r.createdAt}</p><h3 class="font-bold text-gray-800">${escapeHtml(user?.name || '')} <span class="text-sm font-normal text-gray-500">· ${escapeHtml(user?.company || '')}</span></h3><p class="text-xs text-gray-500">${escapeHtml(user?.email || '')}</p></div><span class="badge ${statusColors[r.status]}">${statusLabels[r.status]}</span></div><div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-3 p-3 bg-gray-50 rounded-lg"><div><span class="text-gray-500">Aprendices:</span> <b>${escapeHtml(r.apprenticeRange)}</b></div><div><span class="text-gray-500">Horario:</span> <b class="capitalize">${escapeHtml(r.schedule)}</b></div><div class="col-span-2"><span class="text-gray-500">Programas:</span> <b>${programs.map(p => escapeHtml(p.name)).join(', ')}</b></div></div>${r.observations ? `<p class="text-sm text-gray-700 mb-3"><b>Observaciones:</b> ${escapeHtml(r.observations)}</p>` : ''}<div class="flex flex-wrap gap-2"><button data-action="update-status" data-id="${r.id}" data-status="aprobada" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">✓ Aprobar</button><button data-action="update-status" data-id="${r.id}" data-status="en_proceso" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer"> En proceso</button><button data-action="update-status" data-id="${r.id}" data-status="rechazada" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer"> Rechazar</button></div></div>`;
+          }).join('')}
+        </div>
+      `}`;
 }
 
 function renderAdminReports() {
   return `
     <div>
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">Reportes</h2>
-      <div class="grid grid-mobile md:grid-cols-2 gap-4">
-        <div class="stat-card"><h3 class="font-bold mb-2">📋 Solicitudes</h3><button data-action="export-requests-pdf" class="sena-btn px-4 py-2 rounded-lg text-sm cursor-pointer">PDF</button></div>
-        <div class="stat-card"><h3 class="font-bold mb-2">👥 Usuarios</h3><button data-action="export-users-pdf" class="sena-btn px-4 py-2 rounded-lg text-sm cursor-pointer">PDF</button></div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Reportes</h2>
+      <p class="text-gray-500 text-sm mb-6">Genere y exporte reportes</p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="stat-card"><h3 class="font-bold text-gray-800 mb-2">📋 Solicitudes</h3><div class="flex gap-2"><button data-action="export-requests-pdf" class="sena-btn px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">PDF</button><button data-action="export-requests-excel" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">Excel</button></div></div>
+        <div class="stat-card"><h3 class="font-bold text-gray-800 mb-2">👥 Usuarios</h3><div class="flex gap-2"><button data-action="export-users-pdf" class="sena-btn px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">PDF</button><button data-action="export-users-excel" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">Excel</button></div></div>
+        <div class="stat-card"><h3 class="font-bold text-gray-800 mb-2">📚 Programas</h3><div class="flex gap-2"><button data-action="export-programs-pdf" class="sena-btn px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">PDF</button><button data-action="export-programs-excel" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">Excel</button></div></div>
+        <div class="stat-card"><h3 class="font-bold text-gray-800 mb-2">📈 Estadísticas</h3><div class="space-y-2 text-sm"><div class="flex justify-between"><span class="text-gray-500">Empresarios:</span><b>${state.users.filter(u => u.role === 'empresario').length}</b></div><div class="flex justify-between"><span class="text-gray-500">Solicitudes:</span><b>${state.requests.length}</b></div><div class="flex justify-between"><span class="text-gray-500">Programas:</span><b>${state.programs.length}</b></div></div></div>
       </div>
     </div>`;
 }
@@ -954,12 +925,13 @@ function renderAdminReports() {
 function renderAdminAudit() {
   return `
     <div>
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">Auditoría</h2>
-      <div class="bg-white rounded-xl shadow overflow-hidden table-responsive">
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Auditoría</h2>
+      <p class="text-gray-500 text-sm mb-6">Registro de acciones</p>
+      <div class="bg-white rounded-xl shadow overflow-hidden">
         <table class="w-full">
-          <thead class="bg-gray-50"><tr><th class="text-left px-6 py-3 text-xs font-semibold">Fecha</th><th class="text-left px-6 py-3 text-xs font-semibold">Usuario</th><th class="text-left px-6 py-3 text-xs font-semibold">Acción</th></tr></thead>
+          <thead class="bg-gray-50"><tr><th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Fecha</th><th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Usuario</th><th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Acción</th></tr></thead>
           <tbody class="divide-y">
-            ${state.audit.slice().reverse().map(a => { const user = state.users.find(u => u.id === a.userId); return `<tr><td class="px-6 py-3 text-sm">${escapeHtml(a.timestamp)}</td><td class="px-6 py-3 text-sm">${escapeHtml(user?.name || '')}</td><td class="px-6 py-3 text-sm">${escapeHtml(a.action)}</td></tr>`; }).join('')}
+            ${state.audit.slice().reverse().map(a => { const user = state.users.find(u => u.id === a.userId); return `<tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm text-gray-600">${escapeHtml(a.timestamp)}</td><td class="px-6 py-3 text-sm font-medium">${escapeHtml(user?.name || 'Sistema')}</td><td class="px-6 py-3 text-sm text-gray-700">${escapeHtml(a.action)}</td></tr>`; }).join('')}
           </tbody>
         </table>
       </div>
@@ -967,13 +939,14 @@ function renderAdminAudit() {
 }
 
 // ============================================
-// SUPER ADMIN VIEWS
+// VISTAS SUPER ADMIN
 // ============================================
 function renderSuperDashboard() {
   return `
     <div>
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">Panel Super Administrador</h2>
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Panel Super Administrador</h2>
+      <p class="text-gray-500 text-sm mb-6">Control total del sistema</p>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div class="stat-card border-l-4 border-green-500"><p class="text-gray-500 text-sm">Usuarios</p><p class="text-3xl font-bold">${state.users.length}</p></div>
         <div class="stat-card border-l-4 border-blue-500"><p class="text-gray-500 text-sm">Programas</p><p class="text-3xl font-bold">${state.programs.length}</p></div>
         <div class="stat-card border-l-4 border-yellow-500"><p class="text-gray-500 text-sm">Categorías</p><p class="text-3xl font-bold">${state.categories.length}</p></div>
@@ -984,48 +957,74 @@ function renderSuperDashboard() {
 }
 
 function renderSuperUsers() {
-  console.log('🔵 Renderizando vista de usuarios');
+  const usersFiltered = (state.userSearchQuery || '')
+    ? state.users.filter(u =>
+        (u.name || '').toLowerCase().includes(state.userSearchQuery.toLowerCase()) ||
+        (u.email || '').toLowerCase().includes(state.userSearchQuery.toLowerCase()) ||
+        (u.company || '').toLowerCase().includes(state.userSearchQuery.toLowerCase())
+      )
+    : state.users;
+
   return `
     <div>
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-3">
         <div>
           <h2 class="text-2xl font-bold text-gray-800">Gestión de Usuarios</h2>
-          <p class="text-gray-500 text-sm">Administre todos los usuarios</p>
+          <p class="text-gray-500 text-sm">Administre todos los usuarios del sistema</p>
         </div>
-        <button data-action="new-user" class="sena-btn px-4 py-2 rounded-lg font-semibold cursor-pointer">+ Nuevo Usuario</button>
+        <div class="flex gap-2">
+          <input id="userSearchInput" value="${escapeHtml(state.userSearchQuery || '')}" class="input-sena px-4 py-2 rounded-lg" placeholder="🔍 Buscar usuario...">
+          <button data-action="new-user" class="sena-btn px-4 py-2 rounded-lg font-semibold cursor-pointer whitespace-nowrap">+ Nuevo Usuario</button>
+        </div>
       </div>
-      <div class="bg-white rounded-xl shadow overflow-x-auto table-responsive">
+      <div class="bg-white rounded-xl shadow overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
               <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Nombre</th>
-              <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Correo</th>
-              <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Empresa</th>
+              <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600 hide-mobile">Correo</th>
+              <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600 hide-mobile">Empresa</th>
               <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Rol</th>
               <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y">
-            ${state.users.map(u => {
-              const roleColors = { empresario: 'badge-green', admin: 'badge-blue', superadmin: 'badge-red' };
-              const roleLabels = { empresario: 'Empresario', admin: 'Admin', superadmin: 'Super Admin' };
-              return `
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-3 text-sm font-medium">${escapeHtml(u.name)}</td>
-                  <td class="px-6 py-3 text-sm text-gray-600">${escapeHtml(u.email)}</td>
-                  <td class="px-6 py-3 text-sm text-gray-600">${escapeHtml(u.company || '-')}</td>
-                  <td class="px-6 py-3"><span class="badge ${roleColors[u.role]}">${roleLabels[u.role]}</span></td>
-                  <td class="px-6 py-3">
-                    <div class="flex gap-2">
-                      <button type="button" data-action="edit-user" data-id="${u.id}" class="btn-action btn-edit">✏️ Editar</button>
-                      ${u.role !== 'superadmin' ? `<button type="button" data-action="delete-user" data-id="${u.id}" class="btn-action btn-delete">🗑️ Eliminar</button>` : ''}
-                    </div>
-                  </td>
-                </tr>
-              `;
-            }).join('')}
+            ${usersFiltered.length === 0 ? `<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">No se encontraron usuarios</td></tr>` :
+              usersFiltered.map(u => {
+                const safeName = u.name || '?';
+                const roleColors = { empresario: 'badge-green', admin: 'badge-blue', superadmin: 'badge-red' };
+                const roleLabels = { empresario: 'Empresario', admin: 'Admin', superadmin: 'Super Admin' };
+                const roleColor = roleColors[u.role] || 'badge-gray';
+                const roleLabel = roleLabels[u.role] || escapeHtml(u.role || 'Sin rol');
+                return `
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-sm">${escapeHtml(safeName.charAt(0).toUpperCase())}</div>
+                        <div>
+                          <p class="font-medium text-sm">${escapeHtml(safeName)}</p>
+                          <p class="text-xs text-gray-500 md:hidden">${escapeHtml(u.email || '')}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-3 text-sm text-gray-600 hide-mobile">${escapeHtml(u.email || '-')}</td>
+                    <td class="px-6 py-3 text-sm text-gray-600 hide-mobile">${escapeHtml(u.company || '-')}</td>
+                    <td class="px-6 py-3"><span class="badge ${roleColor}">${roleLabel}</span></td>
+                    <td class="px-6 py-3">
+                      <div class="flex gap-2">
+                        <button type="button" data-action="edit-user" data-id="${u.id}" class="btn-edit">✏️ Editar</button>
+                        ${u.role !== 'superadmin' ? `<button type="button" data-action="delete-user" data-id="${u.id}" class="btn-delete">🗑️ Eliminar</button>` : ''}
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')
+            }
           </tbody>
         </table>
+      </div>
+      <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p class="text-sm text-blue-800"><b>ℹ️ Total:</b> ${state.users.length} usuarios | <b>Empresarios:</b> ${state.users.filter(u => u.role === 'empresario').length} | <b>Admins:</b> ${state.users.filter(u => u.role === 'admin').length} | <b>Super Admins:</b> ${state.users.filter(u => u.role === 'superadmin').length}</p>
       </div>
     </div>`;
 }
@@ -1034,13 +1033,14 @@ function renderSuperPrograms() {
   return `
     <div>
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Gestión de Programas</h2>
+        <div><h2 class="text-2xl font-bold text-gray-800">Gestión de Programas</h2><p class="text-gray-500 text-sm">Administre los programas</p></div>
         <button data-action="new-program" class="sena-btn px-4 py-2 rounded-lg font-semibold cursor-pointer">+ Nuevo Programa</button>
       </div>
-      <div class="grid grid-mobile md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         ${state.programs.map(p => {
           const cat = state.categories.find(c => c.id === p.categoryId);
-          return `<div class="bg-white rounded-xl shadow p-5"><div class="flex justify-between mb-3"><span class="text-3xl">${cat?.icon || '📚'}</span><div class="flex gap-1"><button type="button" data-action="edit-program" data-id="${p.id}" class="btn-action btn-edit">✏️</button><button type="button" data-action="delete-program" data-id="${p.id}" class="btn-action btn-delete">🗑️</button></div></div><h3 class="font-bold text-gray-800 mb-1 text-responsive-base">${escapeHtml(p.name)}</h3><p class="text-xs text-gray-500">⏱️ ${escapeHtml(p.duration)}</p></div>`;
+          const center = state.centers.find(c => c.id === p.centerId);
+          return `<div class="bg-white rounded-xl shadow p-5 card-hover"><div class="flex items-start justify-between mb-3"><span class="text-3xl">${cat?.icon || '📚'}</span><div class="flex gap-1"><button type="button" data-action="edit-program" data-id="${p.id}" class="btn-icon" title="Editar">✏️</button><button type="button" data-action="delete-program" data-id="${p.id}" class="btn-icon btn-icon-red" title="Eliminar">🗑️</button></div></div><h3 class="font-bold text-gray-800 mb-1">${escapeHtml(p.name)}</h3><p class="text-xs text-green-600 font-semibold mb-1">${escapeHtml(cat?.name || '')}</p><p class="text-xs text-blue-600 mb-2">🏢 ${escapeHtml(center?.code || '')} - ${escapeHtml(center?.name || '')}</p><p class="text-sm text-gray-600 mb-3 line-clamp-2">${escapeHtml(p.description)}</p><div class="text-xs text-gray-500">⏱️ ${escapeHtml(p.duration)}</div></div>`;
         }).join('')}
       </div>
     </div>`;
@@ -1050,11 +1050,14 @@ function renderSuperCategories() {
   return `
     <div>
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Gestión de Categorías</h2>
+        <div><h2 class="text-2xl font-bold text-gray-800">Gestión de Categorías</h2><p class="text-gray-500 text-sm">Administre las categorías</p></div>
         <button data-action="new-category" class="sena-btn px-4 py-2 rounded-lg font-semibold cursor-pointer">+ Nueva Categoría</button>
       </div>
-      <div class="grid grid-mobile md:grid-cols-2 lg:grid-cols-3 gap-4">
-        ${state.categories.map(c => `<div class="bg-white rounded-xl shadow p-5"><div class="flex justify-between mb-3"><span class="text-4xl">${c.icon}</span><div class="flex gap-1"><button type="button" data-action="edit-category" data-id="${c.id}" class="btn-action btn-edit">✏️</button><button type="button" data-action="delete-category" data-id="${c.id}" class="btn-action btn-delete">🗑️</button></div></div><h3 class="font-bold text-gray-800">${escapeHtml(c.name)}</h3></div>`).join('')}
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${state.categories.map(c => {
+          const count = state.programs.filter(p => p.categoryId === c.id).length;
+          return `<div class="bg-white rounded-xl shadow p-5 card-hover"><div class="flex items-start justify-between mb-3"><span class="text-4xl">${c.icon}</span><div class="flex gap-1"><button type="button" data-action="edit-category" data-id="${c.id}" class="btn-icon">✏️</button><button type="button" data-action="delete-category" data-id="${c.id}" class="btn-icon btn-icon-red">🗑️</button></div></div><h3 class="font-bold text-gray-800 mb-1">${escapeHtml(c.name)}</h3><p class="text-sm text-gray-600 mb-3">${escapeHtml(c.description)}</p><span class="badge badge-green">${count} programa(s)</span></div>`;
+        }).join('')}
       </div>
     </div>`;
 }
@@ -1063,55 +1066,93 @@ function renderSuperCenters() {
   return `
     <div>
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Gestión de Centros</h2>
+        <div><h2 class="text-2xl font-bold text-gray-800">Gestión de Centros</h2><p class="text-gray-500 text-sm">Administre los centros de formación</p></div>
         <button data-action="new-center" class="sena-btn px-4 py-2 rounded-lg font-semibold cursor-pointer">+ Nuevo Centro</button>
       </div>
-      <div class="grid grid-mobile md:grid-cols-2 lg:grid-cols-3 gap-4">
-        ${state.centers.map(c => `<div class="bg-white rounded-xl shadow p-5"><div class="flex justify-between mb-3"><div><h3 class="font-bold text-gray-800">${escapeHtml(c.name)}</h3><p class="text-xs text-gray-500">📍 ${escapeHtml(c.regional)}</p></div><div class="flex gap-1"><button type="button" data-action="edit-center" data-id="${c.id}" class="btn-action btn-edit">✏️</button><button type="button" data-action="delete-center" data-id="${c.id}" class="btn-action btn-delete">🗑️</button></div></div><span class="badge badge-blue">${escapeHtml(c.code)}</span></div>`).join('')}
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${state.centers.map(c => {
+          const count = state.programs.filter(p => p.centerId === c.id).length;
+          return `<div class="bg-white rounded-xl shadow p-5 card-hover"><div class="flex items-start justify-between mb-3"><div><h3 class="font-bold text-gray-800 mb-1">${escapeHtml(c.name)}</h3><p class="text-xs text-gray-500"> ${escapeHtml(c.regional)}</p></div><div class="flex gap-1"><button type="button" data-action="edit-center" data-id="${c.id}" class="btn-icon">✏️</button><button type="button" data-action="delete-center" data-id="${c.id}" class="btn-icon btn-icon-red">🗑️</button></div></div><div class="flex items-center gap-2 mb-2"><span class="badge badge-blue">${escapeHtml(c.code)}</span><span class="badge badge-green">${count} programa(s)</span></div></div>`;
+        }).join('')}
       </div>
     </div>`;
 }
 
 // ============================================
-// MODALS
+// MODALES (SISTEMA ROBUSTO CON createElement)
 // ============================================
 function closeModal() {
   document.getElementById('modalContainer').innerHTML = '';
+}
+
+function createModal(contentHTML) {
+  const container = document.getElementById('modalContainer');
+  container.innerHTML = '';
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4';
+  overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
+  
+  const content = document.createElement('div');
+  content.className = 'modal-content bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto';
+  content.innerHTML = contentHTML;
+  
+  overlay.appendChild(content);
+  container.appendChild(overlay);
 }
 
 function openUserModal(userId) {
   console.log('🔵 Abriendo modal usuario:', userId);
   const user = userId ? state.users.find(u => u.id === userId) : null;
   
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4';
-  modal.innerHTML = `
-    <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-      <div class="p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xl font-bold text-gray-800">${user ? '✏️ Editar Usuario' : '➕ Nuevo Usuario'}</h3>
-          <button data-action="close-modal" class="text-gray-400 hover:text-gray-600 text-2xl cursor-pointer">&times;</button>
-        </div>
-        <form id="userForm">
-          <div class="space-y-3">
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mUserName" value="${escapeHtml(user?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Correo *</label><input id="mUserEmail" type="email" value="${escapeHtml(user?.email || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label><input id="mUserPhone" value="${escapeHtml(user?.phone || '')}" class="input-sena w-full px-4 py-2 rounded-lg"></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Empresa</label><input id="mUserCompany" value="${escapeHtml(user?.company || '')}" class="input-sena w-full px-4 py-2 rounded-lg"></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Rol *</label><select id="mUserRole" required class="input-sena w-full px-4 py-2 rounded-lg"><option value="empresario" ${user?.role === 'empresario' ? 'selected' : ''}>Empresario</option><option value="admin" ${user?.role === 'admin' ? 'selected' : ''}>Administrador</option><option value="superadmin" ${user?.role === 'superadmin' ? 'selected' : ''}>Super Administrador</option></select></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña ${user ? '(opcional)' : '*'}</label><input id="mUserPassword" type="password" ${!user ? 'required minlength="6"' : 'minlength="6"'} class="input-sena w-full px-4 py-2 rounded-lg" placeholder="${user ? 'Nueva contraseña' : 'Mínimo 6 caracteres'}"></div>
-          </div>
-          <div class="flex gap-2 mt-6">
-            <button type="button" data-action="close-modal" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold cursor-pointer">Cancelar</button>
-            <button type="submit" class="flex-1 sena-btn py-2 rounded-lg font-semibold cursor-pointer">💾 Guardar</button>
-          </div>
-        </form>
+  const html = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">${user ? '✏️ Editar Usuario' : '➕ Nuevo Usuario'}</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl cursor-pointer">&times;</button>
       </div>
+      <form id="userForm">
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre completo *</label>
+            <input id="mUserName" value="${escapeHtml(user?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg" placeholder="Juan Pérez">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Correo electrónico *</label>
+            <input id="mUserEmail" type="email" value="${escapeHtml(user?.email || '')}" required class="input-sena w-full px-4 py-2 rounded-lg" placeholder="correo@empresa.com">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
+            <input id="mUserPhone" value="${escapeHtml(user?.phone || '')}" class="input-sena w-full px-4 py-2 rounded-lg" placeholder="3001234567">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Empresa</label>
+            <input id="mUserCompany" value="${escapeHtml(user?.company || '')}" class="input-sena w-full px-4 py-2 rounded-lg" placeholder="Nombre de la empresa">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Rol *</label>
+            <select id="mUserRole" required class="input-sena w-full px-4 py-2 rounded-lg">
+              <option value="empresario" ${user?.role === 'empresario' ? 'selected' : ''}>Empresario</option>
+              <option value="admin" ${user?.role === 'admin' ? 'selected' : ''}>Administrador</option>
+              <option value="superadmin" ${user?.role === 'superadmin' ? 'selected' : ''}>Super Administrador</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">
+              Contraseña ${user ? '(dejar vacío para no cambiar)' : '*'}
+            </label>
+            <input id="mUserPassword" type="password" ${!user ? 'required minlength="6"' : 'minlength="6"'} class="input-sena w-full px-4 py-2 rounded-lg" placeholder="${user ? 'Nueva contraseña (opcional)' : 'Mínimo 6 caracteres'}">
+          </div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button type="button" onclick="closeModal()" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold cursor-pointer">Cancelar</button>
+          <button type="submit" class="flex-1 sena-btn py-2 rounded-lg font-semibold cursor-pointer">💾 Guardar</button>
+        </div>
+      </form>
     </div>
   `;
   
-  document.getElementById('modalContainer').innerHTML = '';
-  document.getElementById('modalContainer').appendChild(modal);
+  createModal(html);
   
   document.getElementById('userForm').onsubmit = (e) => {
     e.preventDefault();
@@ -1123,31 +1164,32 @@ function openProgramModal(programId) {
   console.log('🔵 Abriendo modal programa:', programId);
   const program = programId ? state.programs.find(p => p.id === programId) : null;
   
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4';
-  modal.innerHTML = `
-    <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-      <div class="p-6">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">${program ? '✏️ Editar Programa' : '➕ Nuevo Programa'}</h3>
-        <form id="programForm">
-          <div class="space-y-3">
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mProgName" value="${escapeHtml(program?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Categoría *</label><select id="mProgCat" required class="input-sena w-full px-4 py-2 rounded-lg">${state.categories.map(c => `<option value="${c.id}" ${program?.categoryId === c.id ? 'selected' : ''}>${c.icon} ${escapeHtml(c.name)}</option>`).join('')}</select></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Centro *</label><select id="mProgCenter" required class="input-sena w-full px-4 py-2 rounded-lg">${state.centers.map(c => `<option value="${c.id}" ${program?.centerId === c.id ? 'selected' : ''}>${escapeHtml(c.code)} - ${escapeHtml(c.name)}</option>`).join('')}</select></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Descripción *</label><textarea id="mProgDesc" required rows="3" class="input-sena w-full px-4 py-2 rounded-lg">${escapeHtml(program?.description || '')}</textarea></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Duración *</label><input id="mProgDuration" value="${escapeHtml(program?.duration || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
-          </div>
-          <div class="flex gap-2 mt-6">
-            <button type="button" data-action="close-modal" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold cursor-pointer">Cancelar</button>
-            <button type="submit" class="flex-1 sena-btn py-2 rounded-lg font-semibold cursor-pointer">💾 Guardar</button>
-          </div>
-        </form>
+  const html = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">${program ? '✏️ Editar Programa' : '➕ Nuevo Programa'}</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl cursor-pointer">&times;</button>
       </div>
+      <form id="programForm">
+        <div class="space-y-3">
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mProgName" value="${escapeHtml(program?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Categoría *</label><select id="mProgCat" required class="input-sena w-full px-4 py-2 rounded-lg">${state.categories.map(c => `<option value="${c.id}" ${program?.categoryId === c.id ? 'selected' : ''}>${c.icon} ${escapeHtml(c.name)}</option>`).join('')}</select></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Centro *</label><select id="mProgCenter" required class="input-sena w-full px-4 py-2 rounded-lg">${state.centers.map(c => `<option value="${c.id}" ${program?.centerId === c.id ? 'selected' : ''}>${escapeHtml(c.code)} - ${escapeHtml(c.name)}</option>`).join('')}</select></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Descripción *</label><textarea id="mProgDesc" required rows="3" class="input-sena w-full px-4 py-2 rounded-lg">${escapeHtml(program?.description || '')}</textarea></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Duración *</label><input id="mProgDuration" value="${escapeHtml(program?.duration || '')}" required class="input-sena w-full px-4 py-2 rounded-lg" placeholder="48h"></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nivel</label><select id="mProgLevel" class="input-sena w-full px-4 py-2 rounded-lg"><option value="Complementario" ${(!program?.level || program?.level === 'Complementario') ? 'selected' : ''}>Complementario</option><option value="Técnico" ${program?.level === 'Técnico' ? 'selected' : ''}>Técnico</option><option value="Tecnólogo" ${program?.level === 'Tecnólogo' ? 'selected' : ''}>Tecnólogo</option></select></div>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button type="button" onclick="closeModal()" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold cursor-pointer">Cancelar</button>
+          <button type="submit" class="flex-1 sena-btn py-2 rounded-lg font-semibold cursor-pointer">💾 Guardar</button>
+        </div>
+      </form>
     </div>
   `;
   
-  document.getElementById('modalContainer').innerHTML = '';
-  document.getElementById('modalContainer').appendChild(modal);
+  createModal(html);
   document.getElementById('programForm').onsubmit = (e) => { e.preventDefault(); saveProgram(programId); };
 }
 
@@ -1155,29 +1197,27 @@ function openCategoryModal(catId) {
   console.log('🔵 Abriendo modal categoría:', catId);
   const cat = catId ? state.categories.find(c => c.id === catId) : null;
   
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4';
-  modal.innerHTML = `
-    <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-      <div class="p-6">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">${cat ? '✏️ Editar Categoría' : '➕ Nueva Categoría'}</h3>
-        <form id="categoryForm">
-          <div class="space-y-3">
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mCatName" value="${escapeHtml(cat?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Ícono</label><input id="mCatIcon" value="${escapeHtml(cat?.icon || '📚')}" class="input-sena w-full px-4 py-2 rounded-lg"></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Descripción *</label><textarea id="mCatDesc" required rows="3" class="input-sena w-full px-4 py-2 rounded-lg">${escapeHtml(cat?.description || '')}</textarea></div>
-          </div>
-          <div class="flex gap-2 mt-6">
-            <button type="button" data-action="close-modal" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold cursor-pointer">Cancelar</button>
-            <button type="submit" class="flex-1 sena-btn py-2 rounded-lg font-semibold cursor-pointer">💾 Guardar</button>
-          </div>
-        </form>
+  const html = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">${cat ? '✏️ Editar Categoría' : '➕ Nueva Categoría'}</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl cursor-pointer">&times;</button>
       </div>
+      <form id="categoryForm">
+        <div class="space-y-3">
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mCatName" value="${escapeHtml(cat?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Ícono (emoji)</label><input id="mCatIcon" value="${escapeHtml(cat?.icon || '📚')}" class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Descripción *</label><textarea id="mCatDesc" required rows="3" class="input-sena w-full px-4 py-2 rounded-lg">${escapeHtml(cat?.description || '')}</textarea></div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button type="button" onclick="closeModal()" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold cursor-pointer">Cancelar</button>
+          <button type="submit" class="flex-1 sena-btn py-2 rounded-lg font-semibold cursor-pointer">💾 Guardar</button>
+        </div>
+      </form>
     </div>
   `;
   
-  document.getElementById('modalContainer').innerHTML = '';
-  document.getElementById('modalContainer').appendChild(modal);
+  createModal(html);
   document.getElementById('categoryForm').onsubmit = (e) => { e.preventDefault(); saveCategory(catId); };
 }
 
@@ -1185,78 +1225,142 @@ function openCenterModal(centerId) {
   console.log('🔵 Abriendo modal centro:', centerId);
   const center = centerId ? state.centers.find(c => c.id === centerId) : null;
   
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4';
-  modal.innerHTML = `
-    <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-      <div class="p-6">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">${center ? '✏️ Editar Centro' : '➕ Nuevo Centro'}</h3>
-        <form id="centerForm">
-          <div class="space-y-3">
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mCenterName" value="${escapeHtml(center?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Código *</label><input id="mCenterCode" value="${escapeHtml(center?.code || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
-            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Regional *</label><input id="mCenterRegional" value="${escapeHtml(center?.regional || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
-          </div>
-          <div class="flex gap-2 mt-6">
-            <button type="button" data-action="close-modal" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold cursor-pointer">Cancelar</button>
-            <button type="submit" class="flex-1 sena-btn py-2 rounded-lg font-semibold cursor-pointer">💾 Guardar</button>
-          </div>
-        </form>
+  const html = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">${center ? '✏️ Editar Centro' : '➕ Nuevo Centro'}</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl cursor-pointer">&times;</button>
       </div>
+      <form id="centerForm">
+        <div class="space-y-3">
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label><input id="mCenterName" value="${escapeHtml(center?.name || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Código *</label><input id="mCenterCode" value="${escapeHtml(center?.code || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-1">Regional *</label><input id="mCenterRegional" value="${escapeHtml(center?.regional || '')}" required class="input-sena w-full px-4 py-2 rounded-lg"></div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button type="button" onclick="closeModal()" class="flex-1 sena-btn-outline py-2 rounded-lg font-semibold cursor-pointer">Cancelar</button>
+          <button type="submit" class="flex-1 sena-btn py-2 rounded-lg font-semibold cursor-pointer">💾 Guardar</button>
+        </div>
+      </form>
     </div>
   `;
   
-  document.getElementById('modalContainer').innerHTML = '';
-  document.getElementById('modalContainer').appendChild(modal);
+  createModal(html);
   document.getElementById('centerForm').onsubmit = (e) => { e.preventDefault(); saveCenter(centerId); };
 }
 
 // ============================================
-// EVENT DELEGATION
+// EVENT DELEGATION UNIFICADO (CORREGIDO Y ROBUSTO)
 // ============================================
 document.addEventListener('click', (e) => {
-  const target = e.target.closest('[data-action]');
-  if (!target) return;
-  
-  const action = target.getAttribute('data-action');
-  const id = target.getAttribute('data-id');
-  
-  console.log('🖱️ Click:', action, 'ID:', id);
-  
-  switch (action) {
-    case 'logout': logout(); break;
-    case 'close-modal': closeModal(); break;
-    case 'toggle-program': toggleProgram(id); break;
-    case 'update-status': updateRequestStatus(id, target.getAttribute('data-status')); break;
-    case 'new-user': openUserModal(null); break;
-    case 'edit-user': openUserModal(id); break;
-    case 'delete-user': deleteUser(id); break;
-    case 'new-program': openProgramModal(null); break;
-    case 'edit-program': openProgramModal(id); break;
-    case 'delete-program': deleteProgram(id); break;
-    case 'new-category': openCategoryModal(null); break;
-    case 'edit-category': openCategoryModal(id); break;
-    case 'delete-category': deleteCategory(id); break;
-    case 'new-center': openCenterModal(null); break;
-    case 'edit-center': openCenterModal(id); break;
-    case 'delete-center': deleteCenter(id); break;
-    case 'export-requests-pdf': exportRequestsPDF(); break;
-    case 'export-users-pdf': exportUsersPDF(); break;
+  // 1. PRIORIDAD 1: NAVEGACIÓN (data-nav)
+  // Buscamos el elemento más cercano con data-nav
+  const navTarget = e.target.closest('[data-nav]');
+  if (navTarget) {
+    e.preventDefault(); // Evitamos cualquier comportamiento por defecto del enlace <a>
+    e.stopPropagation(); // Detenemos la propagación para evitar conflictos
+    
+    const view = navTarget.getAttribute('data-nav');
+    console.log('🧭 [NAV] Clic detectado en:', view);
+    
+    if (view) {
+      navigate(view);
+    } else {
+      console.warn('⚠️ data-nav encontrado pero sin valor');
+    }
+    return; // Salimos inmediatamente
   }
-});
 
-// Navigation delegation
-document.addEventListener('click', (e) => {
-  const target = e.target.closest('[data-nav]');
-  if (!target) return;
-  const view = target.getAttribute('data-nav');
-  console.log('🧭 Navegar a:', view);
-  navigate(view);
+  // 2. PRIORIDAD 2: ACCIONES (data-action)
+  const actionTarget = e.target.closest('[data-action]');
+  if (actionTarget) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const action = actionTarget.getAttribute('data-action');
+    const id = actionTarget.getAttribute('data-id');
+    
+    console.log('🖱️ [ACTION] Clic detectado:', action, 'ID:', id);
+    
+    switch (action) {
+      case 'logout':
+        logout();
+        break;
+      case 'toggle-program':
+        toggleProgram(id);
+        break;
+      case 'clear-selection':
+        state.selectedPrograms = [];
+        navigate('catalogo');
+        break;
+      case 'update-status':
+        const status = actionTarget.getAttribute('data-status');
+        updateRequestStatus(id, status);
+        break;
+      case 'new-user':
+        openUserModal(null);
+        break;
+      case 'edit-user':
+        openUserModal(id);
+        break;
+      case 'delete-user':
+        deleteUser(id);
+        break;
+      case 'new-program':
+        openProgramModal(null);
+        break;
+      case 'edit-program':
+        openProgramModal(id);
+        break;
+      case 'delete-program':
+        deleteProgram(id);
+        break;
+      case 'new-category':
+        openCategoryModal(null);
+        break;
+      case 'edit-category':
+        openCategoryModal(id);
+        break;
+      case 'delete-category':
+        deleteCategory(id);
+        break;
+      case 'new-center':
+        openCenterModal(null);
+        break;
+      case 'edit-center':
+        openCenterModal(id);
+        break;
+      case 'delete-center':
+        deleteCenter(id);
+        break;
+      case 'export-requests-pdf':
+        exportRequestsPDF();
+        break;
+      case 'export-requests-excel':
+        exportRequestsExcel();
+        break;
+      case 'export-users-pdf':
+        exportUsersPDF();
+        break;
+      case 'export-users-excel':
+        exportUsersExcel();
+        break;
+      case 'export-programs-pdf':
+        exportProgramsPDF();
+        break;
+      case 'export-programs-excel':
+        exportProgramsExcel();
+        break;
+      default:
+        console.warn('⚠️ Acción desconocida:', action);
+    }
+  }
 });
 
 // Form submissions
 document.addEventListener('submit', (e) => {
   const formId = e.target.id;
+  
   if (formId === 'loginForm') {
     e.preventDefault();
     login(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
@@ -1292,13 +1396,23 @@ document.addEventListener('input', (e) => {
   if (e.target.id === 'searchInput') {
     state.searchQuery = e.target.value;
     render();
+  } else if (e.target.id === 'userSearchInput') {
+    state.userSearchQuery = e.target.value;
+    render();
   }
 });
 
 document.addEventListener('change', (e) => {
-  if (e.target.id === 'filterCategory') { state.filterCategory = e.target.value; render(); }
-  else if (e.target.id === 'filterCenter') { state.filterCenter = e.target.value; render(); }
-  else if (e.target.id === 'filterStatus') { state.filterStatus = e.target.value; render(); }
+  if (e.target.id === 'filterCategory') {
+    state.filterCategory = e.target.value;
+    render();
+  } else if (e.target.id === 'filterCenter') {
+    state.filterCenter = e.target.value;
+    render();
+  } else if (e.target.id === 'filterStatus') {
+    state.filterStatus = e.target.value;
+    render();
+  }
 });
 
 // ============================================
@@ -1325,7 +1439,7 @@ async function handleSubmitRequest() {
   };
   state.requests.push(req);
   await saveToFirebase('requests', req, req.id);
-  await addAudit('Registro de solicitud');
+  await addAudit('Registro de solicitud ' + req.id);
   showToast('✓ Solicitud enviada', 'success');
   state.selectedPrograms = [];
   navigate('historial');
@@ -1348,7 +1462,7 @@ async function updateRequestStatus(id, status) {
   if (req) {
     req.status = status;
     await updateFirebase('requests', id, { status });
-    await addAudit('Cambio estado solicitud');
+    await addAudit('Cambio estado solicitud ' + id + ' a ' + status);
     showToast('Solicitud actualizada', 'success');
     render();
   }
@@ -1397,7 +1511,12 @@ async function saveUser(userId) {
     }
     const newUser = {
       id: generateId(),
-      name, email, phone, company, role, password,
+      name: name,
+      email: email,
+      phone: phone,
+      company: company,
+      role: role,
+      password: password,
       createdAt: new Date().toISOString().split('T')[0]
     };
     state.users.push(newUser);
@@ -1426,7 +1545,8 @@ async function saveProgram(programId) {
     categoryId: document.getElementById('mProgCat').value,
     centerId: document.getElementById('mProgCenter').value,
     description: document.getElementById('mProgDesc').value.trim(),
-    duration: document.getElementById('mProgDuration').value.trim()
+    duration: document.getElementById('mProgDuration').value.trim(),
+    level: document.getElementById('mProgLevel').value
   };
   
   if (programId) {
@@ -1544,8 +1664,29 @@ function exportRequestsPDF() {
   const doc = new jsPDF();
   doc.setFontSize(16); doc.setTextColor(57,169,0);
   doc.text('SENA - Solicitudes', 14, 20);
-  doc.save('solicitudes.pdf');
+  doc.setFontSize(10); doc.setTextColor(100);
+  doc.text('Generado: ' + new Date().toLocaleString('es-CO'), 14, 28);
+  const rows = state.requests.map(r => {
+    const u = state.users.find(x => x.id === r.userId);
+    const progs = r.programs.map(pid => state.programs.find(p => p.id === pid)).filter(Boolean).map(p => p.name).join(', ');
+    return [r.id.slice(-6).toUpperCase(), u?.name || '', u?.company || '', progs.substring(0,40), r.apprenticeRange, r.schedule, r.status, r.createdAt];
+  });
+  doc.autoTable({ startY: 35, head: [['ID','Empresario','Empresa','Programas','Aprendices','Horario','Estado','Fecha']], body: rows, theme: 'grid', headStyles: { fillColor: [57,169,0] } });
+  doc.save('solicitudes_sena.pdf');
   showToast('PDF exportado', 'success');
+}
+
+function exportRequestsExcel() {
+  const data = state.requests.map(r => {
+    const u = state.users.find(x => x.id === r.userId);
+    const progs = r.programs.map(pid => state.programs.find(p => p.id === pid)).filter(Boolean).map(p => p.name).join(', ');
+    return { ID: r.id.slice(-6).toUpperCase(), Empresario: u?.name, Empresa: u?.company, Programas: progs, Aprendices: r.apprenticeRange, Horario: r.schedule, Estado: r.status, Fecha: r.createdAt };
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Solicitudes');
+  XLSX.writeFile(wb, 'solicitudes_sena.xlsx');
+  showToast('Excel exportado', 'success');
 }
 
 function exportUsersPDF() {
@@ -1553,14 +1694,56 @@ function exportUsersPDF() {
   const doc = new jsPDF();
   doc.setFontSize(16); doc.setTextColor(57,169,0);
   doc.text('SENA - Usuarios', 14, 20);
-  doc.save('usuarios.pdf');
+  doc.setFontSize(10); doc.setTextColor(100);
+  doc.text('Generado: ' + new Date().toLocaleString('es-CO'), 14, 28);
+  const rows = state.users.map(u => [u.name, u.email, u.phone || '', u.company || '', u.role, u.createdAt]);
+  doc.autoTable({ startY: 35, head: [['Nombre','Email','Teléfono','Empresa','Rol','Registro']], body: rows, theme: 'grid', headStyles: { fillColor: [57,169,0] } });
+  doc.save('usuarios_sena.pdf');
   showToast('PDF exportado', 'success');
+}
+
+function exportUsersExcel() {
+  const data = state.users.map(u => ({ Nombre: u.name, Email: u.email, Teléfono: u.phone, Empresa: u.company, Rol: u.role, Registro: u.createdAt }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Usuarios');
+  XLSX.writeFile(wb, 'usuarios_sena.xlsx');
+  showToast('Excel exportado', 'success');
+}
+
+function exportProgramsPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16); doc.setTextColor(57,169,0);
+  doc.text('SENA - Oferta Complementaria 2026', 14, 20);
+  doc.setFontSize(10); doc.setTextColor(100);
+  doc.text('Generado: ' + new Date().toLocaleString('es-CO') + ' - ' + state.programs.length + ' programas', 14, 28);
+  const rows = state.programs.map(p => {
+    const c = state.categories.find(x => x.id === p.categoryId);
+    const center = state.centers.find(x => x.id === p.centerId);
+    return [p.name.substring(0,40), c?.name || '', center?.code || '', p.duration, p.description.substring(0,50)];
+  });
+  doc.autoTable({ startY: 35, head: [['Programa','Categoría','Centro','Duración','Descripción']], body: rows, theme: 'grid', headStyles: { fillColor: [57,169,0] }, styles: { fontSize: 8 } });
+  doc.save('oferta_complementaria_2026.pdf');
+  showToast('PDF exportado', 'success');
+}
+
+function exportProgramsExcel() {
+  const data = state.programs.map(p => {
+    const c = state.categories.find(x => x.id === p.categoryId);
+    const center = state.centers.find(x => x.id === p.centerId);
+    return { Programa: p.name, Categoría: c?.name, Centro: center?.name, Código: center?.code, Duración: p.duration, Descripción: p.description };
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Programas');
+  XLSX.writeFile(wb, 'oferta_complementaria_2026.xlsx');
+  showToast('Excel exportado', 'success');
 }
 
 // ============================================
 // INIT
 // ============================================
-console.log('🚀 Iniciando aplicación...');
 initFirebase();
 </script>
 </body>
