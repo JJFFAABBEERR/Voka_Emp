@@ -13,7 +13,7 @@
   :root { --sena-green: #39A900; --sena-green-dark: #2d8a00; --sena-yellow: #FFCE00; --sena-red: #ED1C24; }
   * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
   body { background: #f3f4f6; margin: 0; }
-  .sena-gradient { background: linear-gradient(135deg, #39A900 0%, #2d8a00 100%); }
+  .sena-gradient { background: linear-gradient(135deg, #2e6313 0%, #2d8a00 100%); }
   .sena-btn { background: #39A900; color: white; transition: all 0.3s; cursor: pointer; border: none; }
   .sena-btn:hover { background: #2d8a00; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(57,169,0,0.4); }
   .sena-btn-red { background: #ED1C24; color: white; cursor: pointer; border: none; }
@@ -100,7 +100,7 @@ try {
 // ============================================
 // DATOS POR DEFECTO
 // ============================================
-const LOGO_URL = 'img/Logo_sena_verde.png';
+const LOGO_URL = 'img/sena-logo.svg';
 const HERO_URL = 'https://image.qwenlm.ai/public_source/9376e0d9-769f-4cc9-9631-fd32242d9981/1768f9356-2b84-43a9-be9a-cba92dd3a98a.png';
 
 const DEFAULT_CENTERS = [
@@ -547,7 +547,7 @@ function renderLogin() {
         <div class="md:w-1/2 sena-gradient p-8 text-white flex flex-col justify-between relative overflow-hidden">
           <div class="absolute inset-0 hero-pattern"></div>
           <div class="relative z-10">
-            <img src="${LOGO_URL}" alt="SENA" class="h-16 mb-6 bg-white rounded-lg p-2">
+          <img src="${LOGO_URL}" alt="SENA" class="h-16 mb-6   rounded-lg p-2">
             <h1 class="text-3xl font-bold mb-3">Sistema de Gestión de Oferta Complementaria</h1>
             <p class="text-green-100 text-lg mb-6">Formación para el trabajo y el desarrollo humano</p>
             <div class="space-y-3">
